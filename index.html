@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Nutrichele — Cozinha da Semana</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBF8F2; --paper-alt:#F3EEE2; --ink:#2B2A28; --ink-soft:#5C584E; --muted:#938D7C;
+    --line:#DFD8C6; --sage:#5F7A5A; --sage-deep:#3F5A3C; --sage-soft:#E1E9DD;
+    --coral:#BD6357; --coral-soft:#F1DFD9; --ochre:#A9791F; --ochre-soft:#F2E6C9;
+    --plum:#7A5C73; --plum-soft:#E9DEE6; --white:#FFFFFF;
+    --radius:10px; --shadow:0 1px 2px rgba(43,42,40,.06), 0 4px 14px rgba(43,42,40,.05);
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1020px;margin:0 auto;padding:18px 16px 70px;}
+
+  header.top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px;flex-wrap:wrap;}
+  header.top .id{display:flex;flex-direction:column;gap:2px;}
+  .eyebrow-text{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+  .version-tag{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:.02em;text-transform:none;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 7px;margin-left:4px;}
+  h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(22px,5vw,30px);margin:2px 0 0;letter-spacing:-.01em;}
+  .sub{font-size:13.5px;color:var(--ink-soft);margin-top:4px;max-width:460px;}
+  .today-chip{font-family:'DM Mono',monospace;font-size:12px;background:var(--sage);color:#fff;padding:8px 14px;border-radius:999px;white-space:nowrap;}
+  .today-chip b{font-family:'Inter',sans-serif;font-weight:600;}
+
+  nav.tabs{display:flex;gap:2px;overflow-x:auto;padding-bottom:2px;margin-bottom:20px;border-bottom:1px solid var(--line);-webkit-overflow-scrolling:touch;}
+  nav.tabs button{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--ink-soft);background:none;border:none;padding:12px 12px;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:.15s;flex-shrink:0;}
+  nav.tabs button:hover{color:var(--ink);}
+  nav.tabs button.active{color:var(--sage-deep);border-bottom-color:var(--sage);}
+
+  section.pane{display:none;}
+  section.pane.active{display:block;}
+
+  .section-note{font-size:12.5px;color:var(--ink-soft);background:var(--paper-alt);border-left:3px solid var(--muted);padding:9px 12px;border-radius:6px;margin-bottom:16px;line-height:1.55;}
+  .section-note.est{border-left-color:var(--ochre);}
+  .empty-hint{font-size:12.5px;color:var(--muted);font-style:italic;padding:8px 0;}
+
+  /* ---------- Semana (desktop) ---------- */
+  .week-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;}
+  .week-controls button{font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;color:var(--sage-deep);background:var(--sage-soft);border:none;border-radius:7px;padding:9px 12px;cursor:pointer;min-height:38px;}
+  .week-controls button:hover{background:#D3E1CD;}
+
+  .week-desktop{display:block;}
+  .grid-table{width:100%;border-collapse:collapse;font-size:13px;min-width:640px;}
+  .grid-table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--white);-webkit-overflow-scrolling:touch;}
+  .grid-table th, .grid-table td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle;}
+  .grid-table th{font-family:'DM Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--paper-alt);font-weight:500;}
+  .grid-table td.meal-label{font-family:'Fraunces',serif;font-weight:600;font-size:14px;position:sticky;left:0;background:var(--white);z-index:1;white-space:nowrap;}
+  .grid-table td.today-col, .grid-table th.today-col{background:var(--coral-soft);}
+  .grid-table select{font-family:'Inter',sans-serif;font-size:13px;padding:8px 6px;border-radius:6px;border:1px solid var(--line);background:#fff;width:100%;min-width:120px;min-height:38px;}
+  .grid-table tr:last-child td{border-bottom:none;}
+
+  /* ---------- Semana (mobile) ---------- */
+  .week-mobile{display:none;}
+  .mobile-day-card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;box-shadow:var(--shadow);}
+  .mobile-day-card.is-today{border-color:var(--coral);border-width:1.5px;}
+  .mobile-day-card .day-head{display:flex;justify-content:space-between;align-items:center;font-family:'Fraunces',serif;font-size:14.5px;font-weight:600;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--line);}
+  .mobile-day-card .today-dot{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;color:var(--coral);background:var(--coral-soft);padding:2px 8px;border-radius:999px;}
+  .mobile-day-card .meal-row{display:grid;grid-template-columns:70px 1fr;gap:8px;align-items:center;padding:4px 0;}
+  .mobile-day-card .meal-row label{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);}
+  .mobile-day-card select{width:100%;font-size:13px;padding:8px 8px;border-radius:6px;border:1px solid var(--line);background:var(--paper-alt);min-height:38px;}
+
+  .today-card{margin-top:20px;background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);}
+  .today-card.today-card-top{margin-top:0;margin-bottom:18px;}
+  .juice-week{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);}
+  .juice-week-head{font-family:'Fraunces',serif;font-size:15px;font-weight:600;margin-bottom:10px;}
+  .juice-week-head small{font-family:'Inter',sans-serif;font-size:11.5px;font-weight:400;color:var(--ink-soft);display:block;margin-top:2px;}
+  .juice-week-list{display:flex;gap:8px;flex-wrap:wrap;}
+  .juice-chip{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--paper-alt);border-radius:8px;padding:7px 10px;min-width:64px;}
+  .juice-chip.is-today{background:var(--coral-soft);}
+  .juice-chip .juice-day{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;color:var(--muted);}
+  .juice-chip .juice-name{font-size:12px;font-weight:600;color:var(--ink);text-align:center;}
+  .week-toggle{
+    width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;
+    background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+    padding:13px 16px;font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;color:var(--ink-soft);
+    cursor:pointer;margin-bottom:16px;
+  }
+  .week-toggle:hover{border-color:var(--sage);color:var(--sage-deep);}
+  .week-toggle .chevron{font-size:16px;transition:transform .2s;color:var(--muted);}
+  .week-toggle.open .chevron{transform:rotate(180deg);}
+  .today-card h3{font-family:'Fraunces',serif;font-size:16px;margin:0 0 10px;color:var(--sage-deep);}
+  .today-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;}
+  .today-item{border-left:3px solid var(--sage);padding:6px 0 6px 10px;}
+  .today-item .m{font-family:'DM Mono',monospace;font-size:10.5px;text-transform:uppercase;color:var(--muted);}
+  .today-item .t{font-size:13.5px;font-weight:600;margin-top:1px;}
+
+  /* ---------- Cartões ---------- */
+  .options-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;}
+  .card{background:var(--white);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;}
+  .card.meal-cafe{border-left-color:var(--sage);}
+  .card.meal-almoco{border-left-color:var(--coral);}
+  .card.meal-lanche{border-left-color:var(--ochre);}
+  .card.meal-jantar{border-left-color:var(--plum);}
+  .card-eyebrow{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px;min-height:22px;}
+  .eyebrow-left{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+  .plain-tag{font-family:'DM Mono',monospace;font-size:10.5px;color:var(--muted);letter-spacing:.04em;}
+  .meal-tag{display:inline-block;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.04em;padding:3px 8px;border-radius:999px;text-transform:uppercase;font-weight:500;}
+  .meal-tag.cafe{background:var(--sage-soft);color:var(--sage-deep);}
+  .meal-tag.almoco{background:var(--coral-soft);color:var(--coral);}
+  .meal-tag.lanche{background:var(--ochre-soft);color:var(--ochre);}
+  .meal-tag.jantar{background:var(--plum-soft);color:var(--plum);}
+  .cat-badge{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:.03em;padding:3px 7px;border-radius:999px;text-transform:uppercase;border:1px dashed var(--line);color:var(--ink-soft);}
+  .cat-badge.livre{border-color:var(--coral);color:var(--coral);}
+  .origin-badge{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:.03em;padding:3px 7px;border-radius:999px;text-transform:uppercase;background:var(--paper-alt);color:var(--ink-soft);}
+  .origin-badge.edited{background:var(--ochre-soft);color:var(--ochre);}
+  .save-btn{font-family:'DM Mono',monospace;font-size:10.5px;background:none;border:1px solid var(--line);border-radius:999px;padding:4px 9px;color:var(--ink-soft);cursor:pointer;white-space:nowrap;}
+  .save-btn:hover{border-color:var(--sage);color:var(--sage-deep);}
+  .save-btn.saved{background:var(--sage-soft);border-color:var(--sage);color:var(--sage-deep);}
+
+  .card h4{font-family:'Fraunces',serif;font-size:19px;line-height:1.28;margin:0 0 12px;color:var(--ink);}
+  .card ul{list-style:none;margin:0;padding:0;flex:1;}
+  .card li{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:7px 0;border-top:1px dashed var(--line);font-size:13.5px;}
+  .card li:first-child{border-top:none;}
+  .card li .ing-name{padding-top:1px;}
+  .qty-block{display:flex;flex-direction:column;align-items:flex-end;gap:1px;flex-shrink:0;}
+  .qty{font-family:'DM Mono',monospace;color:var(--sage-deep);white-space:nowrap;font-size:14.5px;font-weight:500;}
+  .qty.ne{color:var(--muted);font-style:italic;font-size:13px;font-weight:400;font-family:'Inter',sans-serif;}
+  .qty-secondary{font-family:'Inter',sans-serif;font-style:italic;font-size:11px;color:var(--muted);white-space:nowrap;}
+  .qty-secondary.suggested{color:var(--ochre);}
+  .qty-soft{font-family:'Inter',sans-serif;font-style:italic;font-size:12.5px;color:var(--ink-soft);font-weight:400;white-space:nowrap;}
+  .qty-est{font-family:'DM Mono',monospace;font-style:italic;font-size:13.5px;color:var(--ochre);font-weight:500;white-space:nowrap;}
+  .qty-est-label{display:block;font-family:'Inter',sans-serif;font-style:italic;font-size:10px;color:var(--muted);}
+
+  .del-btn{align-self:flex-end;margin-top:10px;background:none;border:none;color:var(--muted);font-size:11.5px;cursor:pointer;font-family:'DM Mono',monospace;text-decoration:underline;padding:2px;}
+  .del-btn:hover{color:var(--coral);}
+
+  .subhead{font-family:'Fraunces',serif;font-size:18px;color:var(--ink);margin:28px 0 12px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+  .subhead small{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);font-weight:400;letter-spacing:.02em;}
+
+  /* ---------- form de variação ---------- */
+  .create-box{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:24px;}
+  .create-box h3{font-family:'Fraunces',serif;font-size:17px;margin:0 0 4px;}
+  .create-box .hint{font-size:12.5px;color:var(--ink-soft);margin-bottom:14px;}
+  .form-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+  .form-row label{flex:1;min-width:160px;display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:var(--ink-soft);}
+  .form-row input[type=text], .form-row select{font-family:'Inter',sans-serif;font-size:14px;padding:9px 10px;border-radius:7px;border:1px solid var(--line);background:#fff;min-height:42px;}
+
+  .add-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px;padding:12px;background:var(--paper-alt);border-radius:8px;}
+  .add-row label{display:flex;flex-direction:column;gap:4px;font-size:11.5px;font-weight:600;color:var(--ink-soft);flex:2;min-width:180px;}
+  .add-row select, .add-row input[type=text]{font-family:'Inter',sans-serif;font-size:14px;padding:9px 10px;border-radius:7px;border:1px solid var(--line);background:#fff;min-height:42px;width:100%;}
+  .add-row input#extra-qty{font-family:'DM Mono',monospace;}
+  .add-row .btn-add{flex-shrink:0;}
+  .list-switcher{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;}
+  .list-switcher select{font-family:'Inter',sans-serif;font-size:14px;padding:9px 10px;border-radius:7px;border:1px solid var(--line);min-height:42px;flex:1;min-width:160px;}
+
+  #form-items{display:flex;flex-direction:column;gap:8px;margin:10px 0;}
+  .item-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 10px;border-radius:8px;background:var(--paper-alt);}
+  .item-row.mode-livre{background:var(--plum-soft);}
+  .item-row .tiny-tag{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;color:var(--muted);flex-basis:100%;order:-1;}
+  .item-row input{font-family:'Inter',sans-serif;font-size:13.5px;padding:8px 9px;border-radius:7px;border:1px solid var(--line);min-height:38px;background:#fff;}
+  .item-row input.i-name{flex:2;min-width:130px;}
+  .item-row input.i-qty{flex:1;min-width:64px;font-family:'DM Mono',monospace;}
+  .item-row input.i-unit{flex:1;min-width:80px;}
+  .item-row .locked{flex:2;min-width:130px;font-size:13.5px;padding:8px 9px;font-family:'DM Mono',monospace;color:var(--sage-deep);}
+  .item-row button.rm{background:none;border:none;color:var(--coral);cursor:pointer;font-size:18px;line-height:1;padding:6px 8px;}
+  .btn-line{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+  .btn-sec, .btn-prim{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;border-radius:7px;padding:10px 16px;cursor:pointer;border:1px solid transparent;min-height:40px;}
+  .btn-sec{background:var(--paper-alt);color:var(--ink-soft);}
+  .btn-sec:hover{background:#EAE3D2;}
+  .btn-prim{background:var(--sage);color:#fff;}
+  .btn-prim:hover{background:var(--sage-deep);}
+
+  /* ---------- Sortear ---------- */
+  .sortear-box{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:20px;}
+  .sortear-controls{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;}
+  .sortear-controls label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:var(--ink-soft);}
+  .sortear-controls select{font-size:14px;padding:9px 10px;border-radius:7px;border:1px solid var(--line);min-height:42px;}
+  .sortear-check{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;font-size:13px;}
+  .sortear-check label{display:flex;align-items:center;gap:6px;font-weight:500;color:var(--ink-soft);}
+  #sortear-result{min-height:60px;}
+  .apply-line{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
+
+  /* ---------- Compras & Custo ---------- */
+  .settings-row{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin-bottom:18px;background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;}
+  .settings-row label{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;}
+  .settings-row input[type=number]{width:64px;font-family:'DM Mono',monospace;font-size:14px;padding:7px 8px;border-radius:6px;border:1px solid var(--line);min-height:38px;}
+
+  .cost-summary{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;box-shadow:var(--shadow);}
+  .cost-summary .cs-title{font-family:'Fraunces',serif;font-size:15px;font-weight:600;margin-bottom:10px;}
+  .cost-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-top:1px dashed var(--line);font-size:13.5px;}
+  .cost-row:first-of-type{border-top:none;}
+  .cost-row .cr-label{display:flex;align-items:center;gap:8px;color:var(--ink-soft);}
+  .cost-row .cr-label input[type=checkbox]{width:16px;height:16px;accent-color:var(--sage);}
+  .cost-row .cr-value{font-family:'DM Mono',monospace;color:var(--sage-deep);font-weight:500;}
+  .cost-row.excluded .cr-label, .cost-row.excluded .cr-value{color:var(--muted);opacity:.6;}
+  .cost-row.grand{border-top:1px solid var(--line);margin-top:6px;padding-top:12px;font-size:16px;}
+  .cost-row.grand .cr-label{font-family:'Fraunces',serif;font-weight:600;color:var(--ink);}
+  .cost-row.grand .cr-value{font-size:18px;font-weight:700;}
+  .cost-empty{font-size:12.5px;color:var(--muted);font-style:italic;}
+  .include-total-toggle{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin:-4px 0 12px;}
+  .include-total-toggle input{width:16px;height:16px;accent-color:var(--sage);}
+
+  table.shop{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--white);min-width:540px;}
+  .shop-wrap{border:1px solid var(--line);border-radius:var(--radius);overflow-x:auto;margin-bottom:10px;-webkit-overflow-scrolling:touch;}
+  table.shop th{font-family:'DM Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--paper-alt);padding:10px;text-align:left;font-weight:500;}
+  table.shop td{padding:10px;border-top:1px solid var(--line);}
+  table.shop tr.checked td{opacity:.4;text-decoration:line-through;}
+  table.shop input[type=checkbox]{width:18px;height:18px;accent-color:var(--sage);}
+  table.shop input.price{width:84px;font-family:'DM Mono',monospace;font-size:13px;padding:7px 8px;border-radius:6px;border:1px solid var(--line);min-height:36px;}
+  table.shop td.qty-cell{font-family:'DM Mono',monospace;color:var(--sage-deep);font-size:14px;}
+  table.shop td.qty-cell.est{color:var(--ochre);font-style:italic;}
+  table.shop td.cost{font-family:'DM Mono',monospace;text-align:right;}
+  .legend{font-size:11.5px;color:var(--muted);margin-bottom:16px;}
+
+  .unqualified{margin-top:6px;}
+  .unqualified summary{cursor:pointer;font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:8px;}
+  .unqualified ul{margin:0;padding-left:18px;font-size:12.5px;color:var(--ink-soft);line-height:1.9;}
+
+  footer.foot{margin-top:30px;font-size:11.5px;color:var(--muted);text-align:center;line-height:1.6;}
+
+  @media (max-width:700px){
+    .week-desktop{display:none;}
+    .week-mobile{display:block;}
+    nav.tabs{flex-wrap:wrap;overflow-x:visible;gap:6px;-webkit-overflow-scrolling:auto;}
+    nav.tabs button{flex:0 0 auto;border:1px solid var(--line);border-radius:8px;border-bottom:1px solid var(--line);padding:9px 12px;}
+    nav.tabs button.active{background:var(--sage-soft);border-color:var(--sage);border-bottom-color:var(--sage);}
+  }
+  @media (max-width:600px){
+    .wrap{padding:14px 12px 60px;}
+    header.top{align-items:flex-start;}
+    .today-chip{font-size:11px;padding:7px 12px;}
+    nav.tabs button{font-size:12px;padding:9px 10px;}
+    .create-box, .sortear-box{padding:14px;}
+    .card h4{font-size:17.5px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="id">
+      <span class="eyebrow-text">Nutrichele <span class="version-tag">v0.5.5</span></span>
+      <h1>Nutrichele</h1>
+      <div class="sub">Painel de cozinha — monte a rotação da semana, veja o que fazer hoje e gere a lista de compras com custo estimado.</div>
+    </div>
+    <div class="today-chip">Hoje é <b id="today-label">—</b></div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button data-tab="semana" class="active">Semana</button>
+    <button data-tab="cafe">Café</button>
+    <button data-tab="almoco">Almoço</button>
+    <button data-tab="lanche">Lanche</button>
+    <button data-tab="jantar">Jantar</button>
+    <button data-tab="variacoes">Receitas</button>
+    <button data-tab="livro">Livro de Receitas</button>
+    <button data-tab="sortear">Sortear</button>
+    <button data-tab="compras">Compras</button>
+  </nav>
+
+  <!-- SEMANA -->
+  <section class="pane active" id="pane-semana">
+    <div class="today-card today-card-top">
+      <h3 id="today-title">O que cozinhar hoje</h3>
+      <div class="today-list" id="today-list"></div>
+    </div>
+
+    <div class="juice-week">
+      <div class="juice-week-head">Sucos da semana <small>rico em vitamina C, ajuda a absorver ferro — revezado automaticamente</small></div>
+      <div class="juice-week-list" id="juice-week-list"></div>
+    </div>
+
+    <button class="week-toggle" id="btn-toggle-week" type="button">
+      <span>Ver / editar a semana completa</span>
+      <span class="chevron" id="week-toggle-chevron">▾</span>
+    </button>
+
+    <div id="week-detail-collapsible" style="display:none;">
+      <div class="week-controls">
+        <button id="btn-reset-week">Repor rotação padrão</button>
+        <span class="section-note" style="margin:0;flex:1;min-width:220px;">Escolha a opção de cada refeição em cada dia — fica salvo sozinho e alimenta a lista de compras.</span>
+      </div>
+
+      <div class="week-desktop">
+        <div class="grid-table-wrap"><table class="grid-table" id="week-grid"></table></div>
+      </div>
+
+      <div class="week-mobile">
+        <div id="mobile-week-days"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CAFE / ALMOCO / LANCHE / JANTAR -->
+  <section class="pane" id="pane-cafe">
+    <div class="options-grid" id="grid-cafe"></div>
+    <div class="subhead">Receitas para o café da manhã <small>mesmos ingredientes do plano, salve as que curtir</small></div>
+    <div class="options-grid" id="varmeal-cafe"></div>
+  </section>
+  <section class="pane" id="pane-almoco">
+    <div class="options-grid" id="grid-almoco"></div>
+    <div class="subhead">Receitas para o almoço <small>mesmos ingredientes do plano, salve as que curtir</small></div>
+    <div class="options-grid" id="varmeal-almoco"></div>
+  </section>
+  <section class="pane" id="pane-lanche">
+    <div class="options-grid" id="grid-lanche"></div>
+    <div class="subhead">Receitas para o lanche <small>mesmos ingredientes do plano, salve as que curtir</small></div>
+    <div class="options-grid" id="varmeal-lanche"></div>
+  </section>
+  <section class="pane" id="pane-jantar">
+    <div class="options-grid" id="grid-jantar"></div>
+    <div class="subhead">Receitas para o jantar <small>mesmos ingredientes do plano, salve as que curtir</small></div>
+    <div class="options-grid" id="varmeal-jantar"></div>
+  </section>
+
+  <!-- VARIAÇÕES -->
+  <section class="pane" id="pane-variacoes">
+    <div class="section-note">Combinações extras — pensadas pra variar sem fugir da orientação. Confirme porções com a nutricionista antes de virar rotina, principalmente se juntar carboidratos de refeições diferentes.</div>
+
+    <div class="create-box">
+      <h3>Criar sua receita</h3>
+      <div class="hint">O nome é sugerido a partir dos ingredientes que você escolher (pode editar). Ingredientes "do plano" vêm com a quantidade travada, igual ao planejamento original; no modo "livre" você define tudo — e a receita passa a valer como <b>fora do planejamento oficial</b>.</div>
+
+      <div class="form-row">
+        <label>Nome da receita
+          <input type="text" id="cv-title" placeholder="gerado automaticamente…">
+        </label>
+        <label>Refeição
+          <select id="cv-mealtype">
+            <option value="cafe">Café da manhã</option>
+            <option value="almoco">Almoço</option>
+            <option value="lanche">Lanche</option>
+            <option value="jantar">Jantar</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="add-row">
+        <label>Ingrediente do plano (quantidade sugerida, travada)
+          <select id="cv-catalog"></select>
+        </label>
+        <button class="btn-sec btn-add" id="cv-add-plan" type="button">+ do plano</button>
+        <button class="btn-sec btn-add" id="cv-add-free" type="button">+ ingrediente livre</button>
+      </div>
+
+      <div id="form-items"></div>
+
+      <div class="btn-line">
+        <button class="btn-prim" id="cv-save" type="button">Salvar receita</button>
+        <button class="btn-sec" id="cv-clear" type="button">Limpar formulário</button>
+      </div>
+    </div>
+
+    <div class="subhead">Sugeridas <small>10 combinações, ingredientes do plano</small></div>
+    <div class="options-grid" id="grid-variacoes"></div>
+
+    <div class="subhead">Suas receitas <small id="custom-count">nenhuma ainda</small></div>
+    <div class="options-grid" id="grid-custom-variacoes"></div>
+  </section>
+
+  <!-- LIVRO DE RECEITAS -->
+  <section class="pane" id="pane-livro">
+    <div class="section-note">Tudo que você salvar — opções oficiais, receitas sugeridas, suas ou do sorteio — cai aqui, com a origem indicada em cada cartão. Uma coleção fixa pra consultar rápido.</div>
+    <div class="btn-line" style="margin-bottom:16px;">
+      <button class="btn-sec" id="btn-export-book" type="button">Exportar livro inteiro (.txt)</button>
+    </div>
+    <div class="options-grid" id="grid-livro"></div>
+  </section>
+
+  <!-- SORTEAR -->
+  <section class="pane" id="pane-sortear">
+    <div class="sortear-box">
+      <h3 style="font-family:'Fraunces',serif;font-size:18px;margin:0 0 4px;">Sortear uma refeição</h3>
+      <div class="hint" style="font-size:12.5px;color:var(--ink-soft);margin-bottom:14px;">Puxa uma combinação aleatória do que já existe no painel. Bom pra quebrar a rotina sem ter que decidir.</div>
+      <div class="sortear-controls">
+        <label>Refeição
+          <select id="sort-mealtype">
+            <option value="cafe">Café da manhã</option>
+            <option value="almoco">Almoço</option>
+            <option value="lanche">Lanche</option>
+            <option value="jantar">Jantar</option>
+          </select>
+        </label>
+        <button class="btn-prim" id="btn-sortear" type="button">Sortear</button>
+        <button class="btn-sec" id="btn-sortear-again" type="button" style="display:none;">Sortear de novo</button>
+      </div>
+      <div class="sortear-check">
+        <label><input type="checkbox" id="sort-inc-oficiais" checked> opções oficiais</label>
+        <label><input type="checkbox" id="sort-inc-sugeridas" checked> variações sugeridas</label>
+        <label><input type="checkbox" id="sort-inc-custom" checked> suas variações</label>
+        <label><input type="checkbox" id="sort-inc-livro" checked> livro de receitas</label>
+      </div>
+      <div id="sortear-result"><div class="empty-hint">Escolha a refeição e clique em sortear.</div></div>
+    </div>
+    <div class="sortear-box">
+      <h3 style="font-family:'Fraunces',serif;font-size:16px;margin:0 0 8px;">Sortear a semana inteira</h3>
+      <div class="hint" style="font-size:12.5px;color:var(--ink-soft);margin-bottom:12px;">Embaralha as 3 opções oficiais de cada refeição para os 7 dias — útil pra sair da rotina de um jeito rápido. Não mexe em variações nem no livro de receitas.</div>
+      <button class="btn-sec" id="btn-sortear-semana" type="button">Sortear semana inteira</button>
+    </div>
+    <div class="section-note">Ideias pra evoluir isso: sortear evitando repetir os últimos 3 dias, excluir ingredientes que não tem em casa no momento, e permitir “sortear e já aplicar” também para variações — hoje isso só funciona pra opções oficiais porque a semana só entende as 3 opções travadas de cada refeição.</div>
+  </section>
+
+  <!-- COMPRAS -->
+  <section class="pane" id="pane-compras">
+    <div class="cost-summary" id="cost-summary"></div>
+
+    <div class="settings-row">
+      <label>Semanas a projetar <input type="number" id="in-weeks" min="1" max="8" value="4"></label>
+      <label><input type="checkbox" id="in-doce" checked> incluir doce zero açúcar (opcional, 1/dia)</label>
+    </div>
+
+    <button class="week-toggle" id="btn-toggle-shop" type="button">
+      <span>Lista do planejamento (fixa, gerada da semana)</span>
+      <span class="chevron" id="shop-toggle-chevron">▾</span>
+    </button>
+    <div id="shop-collapsible">
+      <div class="shop-wrap">
+        <table class="shop">
+          <thead><tr><th></th><th>Ingrediente</th><th>Quantidade no período</th><th>Preço (R$/kg ou R$/unid.)</th><th>Custo</th></tr></thead>
+          <tbody id="shop-body"></tbody>
+        </table>
+      </div>
+      <div class="legend">≈ inclui pelo menos um item com quantidade estimada por nós (porções de "meio prato" sem peso definido no plano original) — não confirmada pela nutricionista.</div>
+      <details class="unqualified">
+        <summary>Itens sem quantidade definida no plano (comprar por olho, não entram no custo)</summary>
+        <ul id="shop-unqualified"></ul>
+      </details>
+    </div>
+
+    <div class="subhead">Suas listas <small>crie quantas quiser, fora do planejamento — mercado geral, farmácia, o que for</small></div>
+    <div class="list-switcher">
+      <select id="list-select"></select>
+      <button class="btn-sec" id="btn-new-list" type="button">+ nova lista</button>
+      <button class="btn-sec" id="btn-rename-list" type="button">Renomear</button>
+      <button class="btn-sec" id="btn-delete-list" type="button">Excluir lista</button>
+    </div>
+    <label class="include-total-toggle"><input type="checkbox" id="list-include-total" checked> somar esta lista no total geral</label>
+    <div class="add-row">
+      <label>Nome do item <small style="font-weight:400;color:var(--muted);">(digite — os itens que você for adicionando ficam salvos como sugestão pra próxima vez)</small>
+        <input type="text" id="extra-name" list="dl-household" placeholder="ex.: detergente, café da casa...">
+      </label>
+      <label style="flex:0 0 90px;min-width:80px;">Qtd
+        <input type="text" id="extra-qty" list="dl-qty-common" placeholder="qtd">
+      </label>
+      <label style="flex:0 0 130px;min-width:110px;">Unidade
+        <input type="text" id="extra-unit" list="dl-purchase-units" placeholder="unidade">
+      </label>
+      <button class="btn-prim btn-add" id="extra-add" type="button">+ adicionar à lista</button>
+    </div>
+    <div class="shop-wrap" id="extra-shop-wrap" style="display:none;">
+      <table class="shop">
+        <thead><tr><th></th><th>Item</th><th>Quantidade</th><th>Preço</th><th>Custo</th><th></th></tr></thead>
+        <tbody id="extra-shop-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="foot">
+    Nutrichele · Preços, rotação e receitas ficam salvos neste dispositivo.<br>
+    Extraído do plano alimentar de 27/06/2026 (pré-diabetes), com café substituído por chá sem açúcar e banana por maçã; porções de "meio prato" convertidas em gramas estimadas por nós (marcadas em âmbar). Este painel não substitui orientação nutricional individualizada.
+  </footer>
+</div>
+
+<datalist id="dl-free-ingredients"></datalist>
+<datalist id="dl-household"></datalist>
+<datalist id="dl-free-units"></datalist>
+<datalist id="dl-purchase-units"></datalist>
+<datalist id="dl-qty-common"></datalist>
+
+<script>
+/* =================================================================
+   DADOS
+   Convenção de unidades (regra: todo ingrediente mensurável mostra as
+   DUAS dimensões — peso em g/ml E medida caseira — sempre que possível):
+     unit 'g' ou 'ml'    -> dimensão métrica primária
+     unit 'unid'         -> contagem inteira (ovos, doce)
+     'colher de chá|sopa|sobremesa|servir', 'xícara', 'copo', 'fatia' ->
+        medida caseira primária (quando o documento só deu isso)
+     'à vontade'         -> sem peso, texto literal (exceção deliberada —
+                             não inventamos número pra "à vontade")
+   estimated:true (no item) -> a dimensão PRIMÁRIA é nossa estimativa,
+                             não do documento (âmbar, rótulo "estimado")
+   pair: {text, estimated}  -> a OUTRA dimensão (caseira quando primária é
+                             peso, ou peso/ml quando primária é caseira).
+                             estimated:true = nós sugerimos porque o
+                             documento não trazia; estimated:false = o
+                             próprio documento já dava as duas juntas.
+   shopName                -> nome usado para somar na lista de compras
+                              (evita duplicar por causa de texto diferente)
+================================================================= */
+const MEAL_LABELS = {cafe:'Café da manhã', almoco:'Almoço', lanche:'Lanche', jantar:'Jantar'};
+const ORIGIN_LABELS = {oficial:'Opção oficial', sugerida:'Sugestão do app', custom:'Criada por você', sorteio:'Salva do sorteio'};
+
+const MEALS = {
+  cafe: { label:'Café da manhã', options: [
+    { title:'Pão francês com ovo mexido', items:[
+      {name:'Pão francês (sem miolo)', shopName:'Pão francês', qty:40, unit:'g', pair:{text:'1 unidade', estimated:false}},
+      {name:'Ovos', qty:2, unit:'unid', pair:{text:'≈ 100 g', estimated:true}} ]},
+    { title:'Crepioca com ovos e chia', items:[
+      {name:'Ovos', qty:2, unit:'unid', pair:{text:'≈ 100 g', estimated:true}},
+      {name:'Tapioca', qty:30, unit:'g', pair:{text:'2 colheres de sopa', estimated:false}},
+      {name:'Chia', qty:1, unit:'colher de chá', estimated:true, pair:{text:'≈ 3 g', estimated:true}} ]},
+    { title:'Wrap de ricota com frango e chá', items:[
+      {name:'Pão integral (fatia)', shopName:'Pão integral', qty:35, unit:'g', pair:{text:'1 fatia', estimated:false}},
+      {name:'Creme de ricota', qty:15, unit:'g', pair:{text:'1 colher de sopa', estimated:false}},
+      {name:'Frango desfiado', qty:30, unit:'g', pair:{text:'2 colheres de sobremesa', estimated:false}},
+      {name:'Chá sem açúcar', qty:1, unit:'xícara', pair:{text:'≈ 200 ml', estimated:true}} ]},
+  ]},
+  almoco: { label:'Almoço', options: [
+    { title:'Frango grelhado, arroz e feijão', items:[
+      {name:'Alface', qty:30, unit:'g', estimated:true, pair:{text:'≈ 3 folhas', estimated:true}},
+      {name:'Tomate', qty:50, unit:'g', estimated:true, pair:{text:'≈ 3 colheres de sopa (picado)', estimated:true}},
+      {name:'Pepino', qty:40, unit:'g', estimated:true, pair:{text:'≈ 3 colheres de sopa (picado)', estimated:true}},
+      {name:'Legumes cozidos', qty:80, unit:'g', estimated:true, pair:{text:'≈ 4 colheres de sopa', estimated:true}},
+      {name:'Arroz', qty:70, unit:'g', pair:{text:'3 colheres de sopa cheias', estimated:false}},
+      {name:'Feijão', qty:70, unit:'g', pair:{text:'3 colheres de sopa cheias', estimated:false}},
+      {name:'Frango grelhado', qty:120, unit:'g', pair:{text:'2 filés médios', estimated:false}} ]},
+    { title:'Carne moída com arroz de legumes', items:[
+      {name:'Rúcula', qty:25, unit:'g', estimated:true, pair:{text:'≈ 4 folhas', estimated:true}},
+      {name:'Cenoura ralada', qty:40, unit:'g', estimated:true, pair:{text:'≈ 3 colheres de sopa', estimated:true}},
+      {name:'Brócolis', qty:80, unit:'g', estimated:true, pair:{text:'≈ 4 colheres de sopa (buquês)', estimated:true}},
+      {name:'Arroz (com seleta de legumes)', shopName:'Arroz', qty:70, unit:'g', pair:{text:'3 colheres de sopa cheias', estimated:false}},
+      {name:'Feijão', qty:70, unit:'g', pair:{text:'3 colheres de sopa cheias', estimated:false}},
+      {name:'Carne moída', qty:105, unit:'g', pair:{text:'2 colheres de servir', estimated:false}} ]},
+    { title:'Frango desfiado com purê', items:[
+      {name:'Alface', qty:30, unit:'g', estimated:true, pair:{text:'≈ 3 folhas', estimated:true}},
+      {name:'Tomate', qty:50, unit:'g', estimated:true, pair:{text:'≈ 3 colheres de sopa (picado)', estimated:true}},
+      {name:'Cebola roxa', qty:15, unit:'g', estimated:true, pair:{text:'≈ 1 colher de sopa (fatiada)', estimated:true}},
+      {name:'Mix de legumes assados', qty:90, unit:'g', estimated:true, pair:{text:'≈ 4 colheres de sopa', estimated:true}},
+      {name:'Purê de batata', qty:120, unit:'g', pair:{text:'2 colheres de servir', estimated:false}},
+      {name:'Frango desfiado', qty:120, unit:'g', pair:{text:'2 colheres de servir', estimated:false}} ]},
+  ]},
+  lanche: { label:'Lanche da tarde / pós-treino', options: [
+    { title:'Frutas com granola e whey', items:[
+      {name:'Frutas (mix)', qty:150, unit:'g', pair:{text:'1 potinho', estimated:false}},
+      {name:'Granola', qty:15, unit:'g', pair:{text:'1 colher de sopa', estimated:false}},
+      {name:'Whey protein', qty:20, unit:'g', pair:{text:'≈ 2 colheres de sopa', estimated:true}} ]},
+    { title:'Iogurte com whey, chia e aveia', items:[
+      {name:'Iogurte natural', qty:170, unit:'g', pair:{text:'1 copo', estimated:false}},
+      {name:'Whey protein', qty:20, unit:'g', pair:{text:'≈ 2 colheres de sopa', estimated:true}},
+      {name:'Chia', qty:1, unit:'colher de chá', pair:{text:'≈ 3 g', estimated:true}},
+      {name:'Aveia', qty:15, unit:'g', pair:{text:'1 colher de sopa', estimated:false}} ]},
+    { title:'Maçã amassada com aveia e whey', items:[
+      {name:'Maçã', qty:70, unit:'g', pair:{text:'1 unidade', estimated:false}},
+      {name:'Aveia', qty:15, unit:'g', pair:{text:'1 colher de sopa', estimated:false}},
+      {name:'Whey protein', qty:20, unit:'g', pair:{text:'≈ 2 colheres de sopa', estimated:true}} ]},
+  ]},
+  jantar: { label:'Jantar', options: [
+    { title:'Pão integral com frango desfiado', items:[
+      {name:'Pão integral (fatias)', shopName:'Pão integral', qty:50, unit:'g', pair:{text:'2 fatias', estimated:false}},
+      {name:'Frango desfiado', qty:95, unit:'g', pair:{text:'4 colheres de sopa cheias', estimated:false}},
+      {name:'Salada (alface etc.)', shopName:'Salada à vontade', qty:null, unit:'à vontade'} ]},
+    { title:'Pão sírio/wrap com carne moída', items:[
+      {name:'Pão sírio ou wrap', qty:40, unit:'g', pair:{text:'1 fatia', estimated:false}},
+      {name:'Carne moída', qty:95, unit:'g', pair:{text:'4 colheres de sopa cheias', estimated:false}},
+      {name:'Alface', shopName:'Salada à vontade', qty:null, unit:'à vontade'} ]},
+    { title:'Hambúrguer caseiro com pão francês', items:[
+      {name:'Pão francês', qty:60, unit:'g', pair:{text:'1 unidade', estimated:false}},
+      {name:'Hambúrguer caseiro de patinho moído', qty:100, unit:'g', pair:{text:'1 unidade', estimated:false}},
+      {name:'Salada de alface', shopName:'Salada à vontade', qty:null, unit:'à vontade'} ]},
+  ]},
+};
+
+const EXTRAS = {
+  optional: {name:'Doce zero açúcar', qty:1, unit:'unid', pair:{text:'≈ 20–30 g (varia por marca)', estimated:true}},
+};
+
+/* Sucos: a nutricionista recomenda fruta rica em vitamina C após almoço/jantar
+   (ajuda a absorver ferro). Lista simples de frutas — vem da seção "Frutas
+   rica em vitamina C" do próprio documento — usada só pra sortear o suco
+   do dia (revezamento automático, não é escolha manual). */
+const JUICE_FRUITS = ['Acerola','Caju','Tangerina','Goiaba','Mamão','Kiwi','Manga','Morango','Laranja','Limão','Abacaxi'];
+const JUICES = JUICE_FRUITS.map(f=> ({
+  name:`Suco de ${f.toLowerCase()}`, qty:1, unit:'copo', pair:{text:'≈ 200 ml', estimated:true}
+}));
+function juiceForDay(dayIdx){ return JUICES[dayIdx % JUICES.length]; }
+
+const VARIACOES = [
+  { title:'Tapioca com frango desfiado', mealType:'cafe', category:'plano', items:[
+    {name:'Tapioca', qty:30, unit:'g', pair:{text:'2 colheres de sopa', estimated:false}},
+    {name:'Frango desfiado', qty:100, unit:'g', pair:{text:'≈ 4 colheres de sopa cheias', estimated:true}} ]},
+  { title:'Panqueca de aveia e ovo', mealType:'cafe', category:'plano', items:[
+    {name:'Aveia', qty:30, unit:'g', pair:{text:'≈ 2 colheres de sopa', estimated:true}},
+    {name:'Ovos', qty:2, unit:'unid', pair:{text:'≈ 100 g', estimated:true}} ]},
+  { title:'Crepioca de carne moída', mealType:'cafe', category:'plano', items:[
+    {name:'Tapioca', qty:30, unit:'g', pair:{text:'2 colheres de sopa', estimated:false}},
+    {name:'Ovos', qty:2, unit:'unid', pair:{text:'≈ 100 g', estimated:true}},
+    {name:'Carne moída', qty:95, unit:'g', pair:{text:'4 colheres de sopa cheias', estimated:false}} ]},
+  { title:'Salada fria de arroz com frango grelhado', mealType:'almoco', category:'plano', items:[
+    {name:'Arroz', qty:70, unit:'g', pair:{text:'3 colheres de sopa cheias', estimated:false}},
+    {name:'Frango grelhado', qty:120, unit:'g', pair:{text:'2 filés médios', estimated:false}},
+    {name:'Alface', qty:30, unit:'g', estimated:true, pair:{text:'≈ 3 folhas', estimated:true}},
+    {name:'Tomate', qty:50, unit:'g', estimated:true, pair:{text:'≈ 3 colheres de sopa (picado)', estimated:true}},
+    {name:'Pepino', qty:40, unit:'g', estimated:true, pair:{text:'≈ 3 colheres de sopa (picado)', estimated:true}} ]},
+  { title:'Purê de batata com frango desfiado e brócolis', mealType:'almoco', category:'plano', items:[
+    {name:'Purê de batata', qty:120, unit:'g', pair:{text:'2 colheres de servir', estimated:false}},
+    {name:'Frango desfiado', qty:120, unit:'g', pair:{text:'2 colheres de servir', estimated:false}},
+    {name:'Brócolis', qty:80, unit:'g', estimated:true, pair:{text:'≈ 4 colheres de sopa (buquês)', estimated:true}} ]},
+  { title:'Salada de feijão com legumes e frango grelhado', mealType:'almoco', category:'plano', items:[
+    {name:'Feijão', qty:70, unit:'g', pair:{text:'3 colheres de sopa cheias', estimated:false}},
+    {name:'Legumes cozidos', qty:80, unit:'g', estimated:true, pair:{text:'≈ 4 colheres de sopa', estimated:true}},
+    {name:'Frango grelhado', qty:120, unit:'g', pair:{text:'2 filés médios', estimated:false}} ]},
+  { title:'Bowl de iogurte, aveia, chia e maçã', mealType:'lanche', category:'plano', items:[
+    {name:'Iogurte natural', qty:170, unit:'g', pair:{text:'1 copo', estimated:false}},
+    {name:'Aveia', qty:15, unit:'g', pair:{text:'1 colher de sopa', estimated:false}},
+    {name:'Chia', qty:1, unit:'colher de chá', pair:{text:'≈ 3 g', estimated:true}},
+    {name:'Maçã', qty:70, unit:'g', pair:{text:'1 unidade', estimated:false}} ]},
+  { title:'Vitamina de maçã com whey e aveia', mealType:'lanche', category:'plano', items:[
+    {name:'Maçã', qty:70, unit:'g', pair:{text:'1 unidade', estimated:false}},
+    {name:'Whey protein', qty:20, unit:'g', pair:{text:'≈ 2 colheres de sopa', estimated:true}},
+    {name:'Aveia', qty:15, unit:'g', pair:{text:'1 colher de sopa', estimated:false}} ]},
+  { title:'Sanduíche de ricota com rúcula', mealType:'lanche', category:'plano', items:[
+    {name:'Pão integral', qty:35, unit:'g', pair:{text:'1 fatia', estimated:false}},
+    {name:'Creme de ricota', qty:15, unit:'g', pair:{text:'1 colher de sopa', estimated:false}},
+    {name:'Rúcula', qty:25, unit:'g', estimated:true, pair:{text:'≈ 4 folhas', estimated:true}} ]},
+  { title:'Wrap de carne moída', mealType:'jantar', category:'plano', items:[
+    {name:'Pão sírio ou wrap', qty:40, unit:'g', pair:{text:'1 fatia', estimated:false}},
+    {name:'Carne moída', qty:95, unit:'g', pair:{text:'4 colheres de sopa cheias', estimated:false}},
+    {name:'Alface', shopName:'Salada à vontade', qty:null, unit:'à vontade'} ]},
+];
+
+const DAYS = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+const MEAL_KEYS = ['cafe','almoco','lanche','jantar'];
+const SOFT_UNITS = ['colher de chá','colher de sopa','colher de sobremesa','colher de servir','xícara','copo','fatia'];
+
+/* Itens de substituição citados no próprio documento (não são inventados —
+   vêm da seção "Opções de Substituições" da nutricionista). Usados só como
+   lista de apoio no modo "ingrediente livre", pra evitar digitação. */
+const FREE_INGREDIENTS = [
+  'Arroz integral','Batata inglesa','Mandioquinha','Macarrão','Batata doce','Mandioca','Pão (genérico)',
+  'Feijão preto','Feijão branco','Ervilha','Grão de bico','Lentilha','Soja',
+  'Patinho','Maminha','Filé mignon','Coxão duro','Coxão mole','Lagarto',
+  'Bonito','Bacalhau','Cação','Badejo','Dourado','Merluza','Namorado','Tilápia','Pescada',
+  'Peito de frango','Coxa de frango','Sobrecoxa de frango','Asa de frango',
+  'Alface','Rúcula','Agrião','Escarola','Acelga','Repolho','Couve','Espinafre','Chicória','Almeirão','Catalonha','Folha de uva',
+  'Brócolis','Couve-flor','Vagem','Chuchu','Berinjela','Beterraba','Cenoura','Palmito','Broto de feijão','Rabanete','Tomate','Pimentão','Abóbora','Abobrinha',
+  'Abacate','Abacaxi','Ameixa','Banana','Caqui','Carambola','Goiaba','Figo','Fruta do conde','Laranja','Maçã','Jabuticaba','Jaca','Kiwi','Mamão','Melancia','Melão','Morango','Nectarina','Pêra','Pêssego','Uva',
+  'Uva passa','Damasco','Ameixa seca','Cranberry','Goji berry','Blueberry','Tâmara',
+  'Nozes','Castanha do pará','Castanha de baru','Castanha de caju','Pistache','Macadâmia','Avelã','Amendoim','Amêndoa',
+  'Amaranto','Chia','Linhaça','Quinoa','Granola','Aveia','Semente de abóbora','Semente de girassol','Gergelim',
+  'Alho','Cebola','Salsinha','Cebolinha','Coentro','Alecrim','Sálvia','Tomilho','Louro','Manjericão','Orégano','Salsa','Açafrão','Cardamomo','Cominho','Curry','Mostarda','Noz-moscada','Páprica','Pimenta calabresa','Pimenta do reino','Colorau','Tempero baiano','Chimichurri','Lemon pepper',
+  'Doce de leite zero açúcar','Goiabada zero açúcar','Paçoquinha zero açúcar','Cocada zero açúcar','Chocolate zero açúcar','Bombom diet',
+  'Geleia de frutas vermelhas zero açúcar','Geleia de morango zero açúcar',
+].sort((a,b)=> a.localeCompare(b,'pt-BR'));
+
+const FREE_UNITS = ['g','unid','colher de chá','colher de sopa','colher de sobremesa','colher de servir','xícara','copo','fatia','ml','kg'];
+
+/* Unidades de "Suas listas" (compras gerais) — só o que dá pra comprar de
+   verdade no mercado (peso/volume/contagem/embalagem), sem colher nem
+   xícara. Ordem: do mais leve/menor volume pro mais pesado/maior volume. */
+const PURCHASE_UNITS = ['g','ml','unid','dúzia','kg','L','pacote','caixa','fardo'];
+
+/* Quantidades mais comuns em compras — aparecem como sugestão no campo
+   "Qtd", mas o campo continua 100% editável (clicar dentro e digitar
+   qualquer outro valor funciona normalmente). */
+const QTY_COMMON = [1,2,3,4,6,12,24,50,100,150,200,250,500,1000];
+
+/* "Suas listas" não vem com nenhum item pré-cadastrado no lançamento —
+   a lista de sugestões (dl-household / seletor) começa vazia e só cresce
+   com o que você mesmo for digitando e adicionando, guardado localmente. */
+
+const SOFT_PLURALS = {
+  'colher de chá':'colheres de chá',
+  'colher de sopa':'colheres de sopa',
+  'colher de sobremesa':'colheres de sobremesa',
+  'colher de servir':'colheres de servir',
+  'xícara':'xícaras',
+  'copo':'copos',
+  'fatia':'fatias',
+};
+function pluralUnit(qty, unit){
+  if(unit === 'unid') return 'unid.';
+  if(qty === 1) return unit;
+  return SOFT_PLURALS[unit] || unit;
+}
+
+/* =================================================================
+   EXPORTAR (receita única ou livro inteiro) — arquivo .txt via Blob
+================================================================= */
+function slugFile(text){
+  return text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-+|-+$/g,'').toLowerCase() || 'receita';
+}
+function formatItemLine(it){
+  if(it.qty === null && it.unit === 'à vontade') return `- ${it.name}: à vontade`;
+  if(it.qty === null) return `- ${it.name}: ${it.note || 'qtd. não especificada'}`;
+  let primary;
+  if(it.unit === 'g' || it.unit === 'ml') primary = `${it.estimated?'~':''}${Math.round(it.qty)} ${it.unit}${it.estimated?' (estimado)':''}`;
+  else if(it.unit === 'unid') primary = `${it.qty} unid.`;
+  else primary = `${it.qty?it.qty+' ':''}${pluralUnit(it.qty, it.unit)}${it.estimated?' (estimado)':''}`;
+  const pairTxt = it.pair ? ` — ${it.pair.text}` : '';
+  return `- ${it.name}: ${primary}${pairTxt}`;
+}
+function formatRecipeText(r){
+  const lines = [];
+  lines.push(r.title);
+  lines.push('Refeição: ' + (MEAL_LABELS[r.mealType] || r.mealType));
+  lines.push('');
+  lines.push('Ingredientes:');
+  r.items.forEach(it=> lines.push(formatItemLine(it)));
+  return lines.join('\n');
+}
+function downloadText(filename, content){
+  const blob = new Blob([content], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=> URL.revokeObjectURL(url), 1000);
+}
+function exportWholeBook(){
+  if(recipesBook.length === 0){ alert('O livro de receitas ainda está vazio.'); return; }
+  const header = `NUTRICHELE — LIVRO DE RECEITAS\nExportado em ${new Date().toLocaleDateString('pt-BR')}\n${recipesBook.length} receita(s)\n`;
+  const body = recipesBook.map(formatRecipeText).join('\n\n----------------------------------------\n\n');
+  downloadText('nutrichele-livro-de-receitas.txt', header + '\n' + body);
+}
+
+/* =================================================================
+   PERSISTÊNCIA
+================================================================= */
+let mem = {};
+async function storeGet(key, fallback){
+  try{ const r = await window.storage.get(key); return r ? JSON.parse(r.value) : fallback; }
+  catch(e){ return (key in mem) ? mem[key] : fallback; }
+}
+async function storeSet(key, value){
+  try{ await window.storage.set(key, JSON.stringify(value)); }
+  catch(e){ mem[key] = value; }
+}
+
+function defaultWeekPlan(){
+  const plan = {};
+  MEAL_KEYS.forEach(k=>{ plan[k] = DAYS.map((_,i)=> i%3); });
+  return plan;
+}
+
+let weekPlan, prices, settings, checkedShop, customVariations, recipesBook, extraLists, activeListId, knownItems;
+let formDraft = { items: [] };
+let titleTouched = false;
+let lastSorted = null;
+let lastSortedKey = null;
+
+/* =================================================================
+   ABAS
+================================================================= */
+function switchTab(tabName){
+  document.querySelectorAll('nav.tabs button').forEach(b=> b.classList.toggle('active', b.dataset.tab === tabName));
+  document.querySelectorAll('section.pane').forEach(p=> p.classList.toggle('active', p.id === 'pane-'+tabName));
+}
+
+document.getElementById('tabs').addEventListener('click', e=>{
+  const btn = e.target.closest('button[data-tab]');
+  if(!btn) return;
+  switchTab(btn.dataset.tab);
+});
+
+document.getElementById('btn-export-book').addEventListener('click', exportWholeBook);
+
+document.getElementById('btn-toggle-week').addEventListener('click', ()=>{
+  const box = document.getElementById('week-detail-collapsible');
+  const btn = document.getElementById('btn-toggle-week');
+  const open = box.style.display !== 'none';
+  box.style.display = open ? 'none' : 'block';
+  btn.classList.toggle('open', !open);
+});
+function renderQtyBlock(item){
+  if(item.qty === null && item.unit === 'à vontade'){
+    return `<span class="qty-block"><span class="qty ne">à vontade</span></span>`;
+  }
+  if(item.qty === null){
+    return `<span class="qty-block"><span class="qty ne">${item.note || item.unit || 'não especificado'}</span></span>`;
+  }
+
+  let primaryHtml;
+  if(item.unit === 'g' || item.unit === 'ml'){
+    primaryHtml = item.estimated
+      ? `<span class="qty-est">~${Math.round(item.qty)} ${item.unit}</span><span class="qty-est-label">estimado</span>`
+      : `<span class="qty">${Math.round(item.qty)} ${item.unit}</span>`;
+  } else if(item.unit === 'unid'){
+    primaryHtml = `<span class="qty">${item.qty} unid.</span>`;
+  } else {
+    const txt = (item.qty ? item.qty + ' ' : '') + pluralUnit(item.qty, item.unit);
+    primaryHtml = item.estimated
+      ? `<span class="qty-est">${txt}</span><span class="qty-est-label">estimado</span>`
+      : `<span class="qty-soft">${txt}</span>`;
+  }
+
+  let pairHtml = '';
+  if(item.pair){
+    pairHtml = `<span class="qty-secondary ${item.pair.estimated?'suggested':''}">${item.pair.estimated?'sugestão: ':''}${item.pair.text}</span>`;
+  }
+  return `<span class="qty-block">${primaryHtml}${pairHtml}</span>`;
+}
+
+/* =================================================================
+   CATÁLOGO DE INGREDIENTES DO PLANO (para o modo "do plano")
+================================================================= */
+function buildCatalog(){
+  const catalog = [];
+  const seen = new Set();
+  MEAL_KEYS.forEach(mk=>{
+    MEALS[mk].options.forEach(opt=>{
+      opt.items.forEach(it=>{
+        const key = mk+'|'+it.name+'|'+it.qty+'|'+it.unit;
+        if(seen.has(key)) return;
+        seen.add(key);
+        catalog.push({...it, sourceKey: mk, sourceLabel: MEALS[mk].label});
+      });
+    });
+  });
+  ['fixed','optional'].forEach(k=>{
+    const it = EXTRAS[k];
+    catalog.push({...it, sourceKey:'extra', sourceLabel: k==='fixed' ? 'Extra diário' : 'Extra opcional'});
+  });
+  return catalog;
+}
+const CATALOG = buildCatalog();
+
+function renderCatalogSelect(){
+  const sel = document.getElementById('cv-catalog');
+  const groups = {};
+  CATALOG.forEach((it,idx)=>{
+    if(!groups[it.sourceLabel]) groups[it.sourceLabel] = [];
+    groups[it.sourceLabel].push({...it, idx});
+  });
+  sel.innerHTML = Object.entries(groups).map(([label, items])=>`
+    <optgroup label="${label}">
+      ${items.map(it=>{
+        const qtyTxt = it.qty===null ? (it.note||it.unit) : (it.unit==='g' ? Math.round(it.qty)+' g' : it.qty+' '+pluralUnit(it.qty, it.unit));
+        return `<option value="${it.idx}">${it.name} — ${qtyTxt}</option>`;
+      }).join('')}
+    </optgroup>
+  `).join('');
+}
+
+/* =================================================================
+   CARTÕES
+================================================================= */
+function renderEyebrow({leftHtml, showSave, saveType, saveId, alreadySaved, originOverride}){
+  const saveBtn = showSave ? `<button class="save-btn ${alreadySaved?'saved':''}" data-savetype="${saveType}" data-saveid="${saveId}" ${originOverride?`data-origin-override="${originOverride}"`:''}>${alreadySaved?'✓ no livro':'+ livro'}</button>` : '';
+  return `<div class="card-eyebrow"><div class="eyebrow-left">${leftHtml||''}</div>${saveBtn}</div>`;
+}
+
+function itemsHTML(items){
+  return items.map(it=>`
+    <li>
+      <span class="ing-name">${it.name}${it.note && it.unit!=='-' ? ` <em style="color:var(--muted);font-style:italic;">— ${it.note}</em>` : ''}</span>
+      ${renderQtyBlock(it)}
+    </li>
+  `).join('');
+}
+
+function isSaved(saveId){
+  return recipesBook.some(r=> r.id === saveId);
+}
+
+function cardHTML({title, items, leftHtml, category, isCustom, delId, saveType, saveId, mealKey}){
+  const catBadge = category ? `<span class="cat-badge ${category==='livre'?'livre':''}">${category==='livre'?'Livre':'Do plano'}</span>` : '';
+  const mealClass = mealKey ? `meal-${mealKey}` : '';
+  return `
+    <div class="card ${mealClass}">
+      ${renderEyebrow({leftHtml: (leftHtml||'') + catBadge, showSave: !!saveId, saveType, saveId, alreadySaved: saveId ? isSaved(saveId) : false})}
+      <h4>${title}</h4>
+      <ul>${itemsHTML(items)}</ul>
+      ${isCustom ? `<button class="del-btn" data-del="${delId}">remover</button>` : ''}
+    </div>`;
+}
+
+function renderMealCards(key){
+  const el = document.getElementById('grid-'+key);
+  el.innerHTML = MEALS[key].options.map((opt,i)=> cardHTML({
+    title: opt.title, items: opt.items,
+    leftHtml: `<span class="plain-tag">Opção ${i+1}</span>`,
+    saveType:'oficial', saveId:`oficial-${key}-${i}`, mealKey:key
+  })).join('');
+}
+
+function allVariationsFor(key){
+  return {
+    suggested: VARIACOES.filter(v=>v.mealType===key),
+    custom: customVariations.filter(v=>v.mealType===key)
+  };
+}
+
+function renderMealVariationSection(key){
+  const el = document.getElementById('varmeal-'+key);
+  const {suggested, custom} = allVariationsFor(key);
+  const sIdx = VARIACOES.map((v,i)=>({v,i})).filter(x=>x.v.mealType===key);
+  let html = sIdx.map(({v,i})=> cardHTML({
+    title:v.title, items:v.items, category:v.category,
+    saveType:'sugerida', saveId:`sugerida-${i}`, mealKey:key
+  })).join('');
+  html += custom.map(v=> cardHTML({
+    title:v.title, items:v.items, category:v.category, isCustom:true, delId:v.id,
+    saveType:'custom', saveId:`custom-${v.id}`, mealKey:key
+  })).join('');
+  el.innerHTML = html || `<div class="empty-hint">Nenhuma receita cadastrada para esta refeição ainda.</div>`;
+}
+
+function renderVariacoesTab(){
+  document.getElementById('grid-variacoes').innerHTML = VARIACOES.map((v,i)=> cardHTML({
+    title:v.title, items:v.items,
+    leftHtml:`<span class="meal-tag ${v.mealType}">${MEAL_LABELS[v.mealType]}</span>`,
+    category:v.category, saveType:'sugerida', saveId:`sugerida-${i}`, mealKey:v.mealType
+  })).join('');
+
+  const el = document.getElementById('grid-custom-variacoes');
+  const countEl = document.getElementById('custom-count');
+  if(customVariations.length === 0){
+    el.innerHTML = `<div class="empty-hint">Você ainda não criou nenhuma receita. Use o formulário acima.</div>`;
+    countEl.textContent = 'nenhuma ainda';
+  }else{
+    el.innerHTML = customVariations.map(v=> cardHTML({
+      title:v.title, items:v.items,
+      leftHtml:`<span class="meal-tag ${v.mealType}">${MEAL_LABELS[v.mealType]}</span>`,
+      category:v.category, isCustom:true, delId:v.id,
+      saveType:'custom', saveId:`custom-${v.id}`, mealKey:v.mealType
+    })).join('');
+    countEl.textContent = customVariations.length + (customVariations.length===1?' variação':' variações');
+  }
+}
+
+let editingRecipeId = null;
+let editDraft = null;
+
+function renderLivroViewCard(r){
+  const originLabel = ORIGIN_LABELS[r.origin] || (r.category==='livre' ? 'Criada por você' : 'Salva');
+  return `
+    <div class="card meal-${r.mealType}">
+      <div class="card-eyebrow">
+        <div class="eyebrow-left">
+          <span class="meal-tag ${r.mealType}">${MEAL_LABELS[r.mealType]}</span>
+          <span class="origin-badge">${originLabel}</span>
+          ${r.edited ? '<span class="origin-badge edited">editada</span>' : ''}
+          ${r.category?`<span class="cat-badge ${r.category==='livre'?'livre':''}">${r.category==='livre'?'Livre':'Do plano'}</span>`:''}
+        </div>
+      </div>
+      <h4>${r.title}</h4>
+      <ul>${itemsHTML(r.items)}</ul>
+      <div class="btn-line" style="margin-top:12px;">
+        <button class="btn-sec" data-edit="${r.id}" type="button">Editar</button>
+        <button class="btn-sec" data-dup="${r.id}" type="button">Duplicar</button>
+        <button class="btn-sec" data-export="${r.id}" type="button">Exportar</button>
+        <button class="del-btn" data-del="BOOK::${r.id}" style="align-self:center;margin-top:0;">remover</button>
+      </div>
+    </div>`;
+}
+
+function renderLivroEditCard(){
+  const d = editDraft;
+  return `
+    <div class="card" style="border-color:var(--sage);">
+      <div class="card-eyebrow"><div class="eyebrow-left"><span class="plain-tag">editando</span></div></div>
+      <div class="form-row" style="margin-bottom:8px;">
+        <label>Nome
+          <input type="text" id="edit-title" value="${d.title}">
+        </label>
+        <label>Refeição
+          <select id="edit-mealtype">
+            ${MEAL_KEYS.map(mk=>`<option value="${mk}" ${mk===d.mealType?'selected':''}>${MEAL_LABELS[mk]}</option>`).join('')}
+          </select>
+        </label>
+      </div>
+      <div id="edit-items"></div>
+      <div class="btn-line">
+        <button class="btn-sec" id="edit-add-item" type="button">+ ingrediente</button>
+        <button class="btn-prim" id="edit-save" type="button">Salvar edição</button>
+        <button class="btn-sec" id="edit-cancel" type="button">Cancelar</button>
+      </div>
+    </div>`;
+}
+
+function renderEditItemsInner(){
+  const el = document.getElementById('edit-items');
+  if(!el) return;
+  el.innerHTML = editDraft.items.map((it,i)=>`
+    <div class="item-row mode-livre" data-idx="${i}">
+      <input class="i-name" type="text" list="dl-free-ingredients" value="${it.name||''}">
+      <input class="i-qty" type="number" step="any" value="${it.qty===null||it.qty===undefined?'':it.qty}">
+      <input class="i-unit" type="text" list="dl-free-units" value="${it.unit||''}">
+      <button class="rm" type="button">×</button>
+    </div>
+  `).join('');
+  el.querySelectorAll('.item-row').forEach(row=>{
+    const idx = parseInt(row.dataset.idx);
+    row.querySelector('.i-name').addEventListener('input', e=> editDraft.items[idx].name = e.target.value);
+    row.querySelector('.i-qty').addEventListener('input', e=> editDraft.items[idx].qty = e.target.value === '' ? null : parseFloat(e.target.value));
+    row.querySelector('.i-unit').addEventListener('input', e=> editDraft.items[idx].unit = e.target.value);
+    row.querySelector('.rm').addEventListener('click', ()=>{ editDraft.items.splice(idx,1); renderEditItemsInner(); });
+  });
+}
+
+function renderLivro(){
+  const el = document.getElementById('grid-livro');
+  if(recipesBook.length === 0){
+    el.innerHTML = `<div class="empty-hint">Nada salvo ainda. Clique em "+ livro" em qualquer cartão pra guardar aqui.</div>`;
+    return;
+  }
+  el.innerHTML = recipesBook.map(r=> r.id === editingRecipeId ? renderLivroEditCard() : renderLivroViewCard(r)).join('');
+  if(editingRecipeId){
+    renderEditItemsInner();
+    document.getElementById('edit-title').addEventListener('input', e=> editDraft.title = e.target.value);
+    document.getElementById('edit-mealtype').addEventListener('change', e=> editDraft.mealType = e.target.value);
+    document.getElementById('edit-add-item').addEventListener('click', ()=>{ editDraft.items.push({name:'',qty:'',unit:''}); renderEditItemsInner(); });
+    document.getElementById('edit-cancel').addEventListener('click', ()=>{ editingRecipeId=null; editDraft=null; renderLivro(); });
+    document.getElementById('edit-save').addEventListener('click', async ()=>{
+      const idx = recipesBook.findIndex(r=> r.id === editingRecipeId);
+      if(idx<0) return;
+      const items = editDraft.items
+        .filter(it=> it.name && it.name.trim()!=='')
+        .map(it=>({ name:it.name.trim(), qty:(it.qty===''||it.qty===null||isNaN(it.qty))?null:parseFloat(it.qty), unit: it.unit && it.unit.trim()!=='' ? it.unit.trim() : '-' }));
+      recipesBook[idx] = { ...recipesBook[idx], title: editDraft.title.trim() || recipesBook[idx].title, mealType: editDraft.mealType, items, edited:true };
+      await storeSet('recipesBook', recipesBook);
+      editingRecipeId = null; editDraft = null;
+      renderLivro();
+    });
+  }
+  el.querySelectorAll('[data-edit]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const r = recipesBook.find(x=> String(x.id) === btn.dataset.edit);
+      if(!r) return;
+      editingRecipeId = r.id;
+      editDraft = { title:r.title, mealType:r.mealType, items: r.items.map(it=>({...it})) };
+      renderLivro();
+    });
+  });
+  el.querySelectorAll('[data-dup]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const r = recipesBook.find(x=> String(x.id) === btn.dataset.dup);
+      if(!r) return;
+      recipesBook.push({ ...r, id: Date.now(), title: r.title + ' (cópia)', savedAt: Date.now() });
+      await storeSet('recipesBook', recipesBook);
+      renderLivro();
+    });
+  });
+  el.querySelectorAll('[data-export]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const r = recipesBook.find(x=> String(x.id) === btn.dataset.export);
+      if(!r) return;
+      downloadText(slugFile(r.title)+'.txt', formatRecipeText(r));
+    });
+  });
+}
+
+function renderAllVariationViews(){
+  renderVariacoesTab();
+  MEAL_KEYS.forEach(renderMealVariationSection);
+  renderLivro();
+}
+
+/* -- clique global para salvar/remover do livro e deletar customs -- */
+document.addEventListener('click', async e=>{
+  const saveBtn = e.target.closest('.save-btn');
+  if(saveBtn){
+    const {savetype, saveid, originOverride} = saveBtn.dataset;
+    await toggleSave(savetype, saveid, originOverride);
+    return;
+  }
+  const delBtn = e.target.closest('[data-del]');
+  if(delBtn){
+    const id = delBtn.dataset.del;
+    if(id.startsWith('BOOK::')){
+      const rid = id.replace('BOOK::','');
+      recipesBook = recipesBook.filter(r=> String(r.id) !== rid);
+      await storeSet('recipesBook', recipesBook);
+    }else{
+      customVariations = customVariations.filter(v=> String(v.id) !== String(id));
+      await storeSet('customVariations', customVariations);
+    }
+    renderAllVariationViews();
+    renderShopping();
+    return;
+  }
+});
+
+function findSourceObject(saveType, saveId){
+  if(saveType === 'oficial'){
+    const [,mk,idx] = saveId.split('-');
+    const opt = MEALS[mk].options[parseInt(idx)];
+    return { title:opt.title, items:opt.items, mealType:mk, category:'plano' };
+  }
+  if(saveType === 'sugerida'){
+    const idx = parseInt(saveId.split('-')[1]);
+    const v = VARIACOES[idx];
+    return { title:v.title, items:v.items, mealType:v.mealType, category:v.category };
+  }
+  if(saveType === 'custom'){
+    const id = saveId.split('-')[1];
+    const v = customVariations.find(x=> String(x.id) === id);
+    if(!v) return null;
+    return { title:v.title, items:v.items, mealType:v.mealType, category:v.category };
+  }
+  return null;
+}
+
+async function toggleSave(saveType, saveId, originOverride){
+  const existingIdx = recipesBook.findIndex(r=> r.id === saveId);
+  if(existingIdx >= 0){
+    recipesBook.splice(existingIdx,1);
+  }else{
+    const src = findSourceObject(saveType, saveId);
+    if(!src) return;
+    recipesBook.push({ id: saveId, title: src.title, items: src.items, mealType: src.mealType, category: src.category, origin: originOverride || saveType, edited:false, savedAt: Date.now() });
+  }
+  await storeSet('recipesBook', recipesBook);
+  renderAllVariationViews();
+  MEAL_KEYS.forEach(renderMealCards);
+  if(lastSorted && lastSortedKey) renderSortResult(lastSorted, lastSortedKey);
+}
+
+/* =================================================================
+   FORMULÁRIO — variação própria (modo plano trava qtd / modo livre é editável)
+================================================================= */
+const NAME_VEG = new Set(['Alface','Tomate','Pepino','Legumes cozidos','Rúcula','Cenoura ralada','Brócolis','Cebola roxa','Mix de legumes assados']);
+const NAME_BREAD = new Set(['Pão francês','Pão francês (sem miolo)','Pão integral','Pão integral (fatia)','Pão integral (fatias)','Pão sírio ou wrap']);
+const NAME_PROTEIN = new Set(['Ovos','Frango grelhado','Frango desfiado','Carne moída','Hambúrguer caseiro de patinho moído','Whey protein']);
+
+function joinNatural(parts){
+  if(parts.length === 0) return '';
+  if(parts.length === 1) return parts[0];
+  if(parts.length === 2) return `${parts[0]} e ${parts[1]}`;
+  return `${parts.slice(0,-1).join(', ')} e ${parts[parts.length-1]}`;
+}
+
+function suggestTitle(items){
+  const names = items.filter(it=> it.name && it.name.trim()!=='').map(it=> it.name.trim());
+  if(names.length === 0) return '';
+
+  const veg = names.filter(n=> NAME_VEG.has(n));
+  const bread = names.filter(n=> NAME_BREAD.has(n));
+  const protein = names.filter(n=> NAME_PROTEIN.has(n));
+  const others = names.filter(n=> !NAME_VEG.has(n) && !NAME_BREAD.has(n) && !NAME_PROTEIN.has(n));
+
+  // Padrão "salada": 2+ folhas/legumes, ou 1 legume + proteína + mais alguma coisa
+  if(veg.length >= 2 || (veg.length >= 1 && protein.length >= 1 && names.length >= 3)){
+    const parts = [];
+    if(protein.length) parts.push(joinNatural(protein.map(p=> p.toLowerCase())));
+    if(bread.length) parts.push('crouton');
+    if(others.length) parts.push(joinNatural(others.map(o=> o.toLowerCase())));
+    return parts.length ? `Salada de ${joinNatural(parts)}` : 'Salada de legumes';
+  }
+
+  return names.length === 2 ? `${names[0]} com ${names[1]}` : joinNatural(names);
+}
+
+function maybeUpdateTitle(){
+  if(titleTouched) return;
+  document.getElementById('cv-title').value = suggestTitle(formDraft.items);
+}
+
+function renderFormItems(){
+  const el = document.getElementById('form-items');
+  el.innerHTML = formDraft.items.map((it,i)=>{
+    if(it.mode === 'plano'){
+      const qtyTxt = it.qty===null ? (it.note||it.unit) : (it.unit==='g' ? Math.round(it.qty)+' g' : it.qty+' '+pluralUnit(it.qty, it.unit));
+      return `<div class="item-row" data-idx="${i}">
+        <span class="tiny-tag">do plano — ${it.sourceLabel||''}</span>
+        <span class="locked">${it.name}</span>
+        <span class="locked">${qtyTxt}</span>
+        <button class="rm" type="button" title="remover">×</button>
+      </div>`;
+    }
+    return `<div class="item-row mode-livre" data-idx="${i}">
+      <span class="tiny-tag">livre — escolha na lista ou digite pra filtrar</span>
+      <input class="i-name" type="text" list="dl-free-ingredients" placeholder="Ingrediente (clique para ver a lista)" value="${it.name||''}">
+      <input class="i-qty" type="number" step="any" placeholder="qtd" value="${it.qty===''||it.qty==null?'':it.qty}">
+      <input class="i-unit" type="text" list="dl-free-units" placeholder="unidade" value="${it.unit||''}">
+      <button class="rm" type="button" title="remover">×</button>
+    </div>`;
+  }).join('');
+
+  el.querySelectorAll('.item-row').forEach(row=>{
+    const idx = parseInt(row.dataset.idx);
+    const nameInp = row.querySelector('.i-name');
+    if(nameInp){
+      nameInp.addEventListener('input', e=>{ formDraft.items[idx].name = e.target.value; maybeUpdateTitle(); });
+      row.querySelector('.i-qty').addEventListener('input', e=> formDraft.items[idx].qty = e.target.value);
+      row.querySelector('.i-unit').addEventListener('input', e=> formDraft.items[idx].unit = e.target.value);
+    }
+    row.querySelector('.rm').addEventListener('click', ()=>{
+      formDraft.items.splice(idx,1);
+      renderFormItems();
+      maybeUpdateTitle();
+    });
+  });
+}
+
+document.getElementById('cv-title').addEventListener('input', ()=>{ titleTouched = true; });
+
+document.getElementById('cv-add-plan').addEventListener('click', ()=>{
+  const idx = parseInt(document.getElementById('cv-catalog').value);
+  const it = CATALOG[idx];
+  if(!it) return;
+  formDraft.items.push({ mode:'plano', name:it.name, qty:it.qty, unit:it.unit, note:it.note, pair:it.pair, estimated:it.estimated, sourceLabel:it.sourceLabel });
+  renderFormItems();
+  maybeUpdateTitle();
+});
+document.getElementById('cv-add-free').addEventListener('click', ()=>{
+  formDraft.items.push({ mode:'livre', name:'', qty:'', unit:'' });
+  renderFormItems();
+});
+
+function resetForm(){
+  formDraft = { items: [] };
+  titleTouched = false;
+  document.getElementById('cv-title').value = '';
+  document.getElementById('cv-mealtype').value = 'cafe';
+  renderFormItems();
+}
+document.getElementById('cv-clear').addEventListener('click', resetForm);
+
+document.getElementById('cv-save').addEventListener('click', async ()=>{
+  const title = document.getElementById('cv-title').value.trim() || suggestTitle(formDraft.items);
+  const mealType = document.getElementById('cv-mealtype').value;
+  const validItems = formDraft.items.filter(it=> it.name && it.name.trim()!=='');
+  if(!title || validItems.length === 0) return;
+
+  const category = validItems.some(it=> it.mode === 'livre') ? 'livre' : 'plano';
+  const items = validItems.map(it=>{
+    if(it.mode === 'plano') return { name:it.name, qty:it.qty, unit:it.unit, note:it.note, pair:it.pair, estimated:it.estimated };
+    return {
+      name: it.name.trim(),
+      qty: (it.qty === '' || it.qty === null || isNaN(parseFloat(it.qty))) ? null : parseFloat(it.qty),
+      unit: it.unit && it.unit.trim() !== '' ? it.unit.trim() : '-'
+    };
+  });
+
+  customVariations.push({ id: Date.now(), title, mealType, category, items });
+  await storeSet('customVariations', customVariations);
+  resetForm();
+  renderAllVariationViews();
+  renderShopping();
+});
+
+/* =================================================================
+   SEMANA — desktop + mobile
+================================================================= */
+function jsDayToIdx(jsDay){ return (jsDay + 6) % 7; }
+
+function renderWeekGrid(){
+  const todayIdx = jsDayToIdx(new Date().getDay());
+  let html = '<thead><tr><th>Refeição</th>' + DAYS.map((d,i)=>
+    `<th class="${i===todayIdx?'today-col':''}">${d}${i===todayIdx?' •':''}</th>`).join('') + '</tr></thead><tbody>';
+  MEAL_KEYS.forEach(mk=>{
+    html += `<tr><td class="meal-label">${MEALS[mk].label}</td>`;
+    DAYS.forEach((d,i)=>{
+      const val = weekPlan[mk][i];
+      html += `<td class="${i===todayIdx?'today-col':''}"><select data-meal="${mk}" data-day="${i}">
+        ${MEALS[mk].options.map((o,oi)=>`<option value="${oi}" ${oi===val?'selected':''}>Opção ${oi+1}</option>`).join('')}
+      </select></td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  document.getElementById('week-grid').innerHTML = html;
+  document.querySelectorAll('#week-grid select').forEach(sel=>{
+    sel.addEventListener('change', async e=>{
+      const {meal, day} = e.target.dataset;
+      weekPlan[meal][day] = parseInt(e.target.value);
+      await storeSet('weekPlan', weekPlan);
+      renderMobileWeekDays();
+      renderToday();
+      renderShopping();
+    });
+  });
+}
+
+function renderMobileWeekDays(){
+  const todayIdx = jsDayToIdx(new Date().getDay());
+  const el = document.getElementById('mobile-week-days');
+  el.innerHTML = DAYS.map((d,di)=>`
+    <div class="mobile-day-card ${di===todayIdx?'is-today':''}">
+      <div class="day-head"><span>${d}</span>${di===todayIdx?'<span class="today-dot">hoje</span>':''}</div>
+      ${MEAL_KEYS.map(mk=>{
+        const val = weekPlan[mk][di];
+        return `<div class="meal-row">
+          <label>${MEALS[mk].label.split(' ')[0]}</label>
+          <select data-meal="${mk}" data-day="${di}">
+            ${MEALS[mk].options.map((o,oi)=>`<option value="${oi}" ${oi===val?'selected':''}>Opção ${oi+1}</option>`).join('')}
+          </select>
+        </div>`;
+      }).join('')}
+    </div>
+  `).join('');
+  el.querySelectorAll('select').forEach(sel=>{
+    sel.addEventListener('change', async e=>{
+      const {meal, day} = e.target.dataset;
+      weekPlan[meal][day] = parseInt(e.target.value);
+      await storeSet('weekPlan', weekPlan);
+      renderWeekGrid();
+      renderToday();
+      renderShopping();
+    });
+  });
+}
+
+function renderToday(){
+  const jsDay = new Date().getDay();
+  const idx = jsDayToIdx(jsDay);
+  document.getElementById('today-label').textContent = DAYS[idx] + '-feira';
+  document.getElementById('today-title').textContent = 'O que cozinhar hoje — ' + DAYS[idx];
+  const list = document.getElementById('today-list');
+  const includeDoce = document.getElementById('in-doce') && document.getElementById('in-doce').checked;
+  const juice = juiceForDay(idx);
+  list.innerHTML = MEAL_KEYS.map(mk=>{
+    const opt = MEALS[mk].options[weekPlan[mk][idx]];
+    return `<div class="today-item"><div class="m">${MEALS[mk].label}</div><div class="t">${opt.title}</div></div>`;
+  }).join('') + `<div class="today-item" style="border-color:var(--coral);"><div class="m">Sempre</div><div class="t">${juice.name}${includeDoce ? ' + doce zero açúcar' : ''}</div></div>`;
+}
+
+function renderJuiceWeek(){
+  const el = document.getElementById('juice-week-list');
+  if(!el) return;
+  const todayIdx = jsDayToIdx(new Date().getDay());
+  el.innerHTML = DAYS.map((d,i)=>`
+    <div class="juice-chip ${i===todayIdx?'is-today':''}">
+      <span class="juice-day">${d.slice(0,3)}</span>
+      <span class="juice-name">${juiceForDay(i).name.replace('Suco de ','')}</span>
+    </div>
+  `).join('');
+}
+
+/* =================================================================
+   SUAS LISTAS (múltiplas, nomeadas, fora do planejamento)
+================================================================= */
+function activeList(){
+  return extraLists.find(l=> l.id === activeListId) || extraLists[0];
+}
+
+function renderListSelect(){
+  const sel = document.getElementById('list-select');
+  sel.innerHTML = extraLists.map(l=> `<option value="${l.id}" ${l.id===activeListId?'selected':''}>${l.name} (${l.items.length})</option>`).join('');
+}
+
+function extraCostFor(it){
+  const price = parseFloat(it.price);
+  if(isNaN(price)) return null;
+  const qty = parseFloat(it.qty);
+  if(isNaN(qty)) return null;
+  const u = (it.unit||'').toLowerCase();
+  if(u === 'g' || u === 'ml') return (qty/1000) * price;
+  return qty * price;
+}
+
+function listTotal(list){
+  let total = 0;
+  list.items.forEach(it=>{
+    const c = extraCostFor(it);
+    if(c !== null) total += c;
+  });
+  return total;
+}
+
+function extraListsGrandTotal(){
+  return extraLists
+    .filter(l=> l.includeInTotal !== false)
+    .reduce((sum,l)=> sum + listTotal(l), 0);
+}
+
+let lastPlanTotal = 0;
+
+function renderCostSummary(){
+  const el = document.getElementById('cost-summary');
+  if(!el || typeof extraLists === 'undefined' || !extraLists) return;
+  const rows = [];
+  rows.push(`<div class="cost-row"><span class="cr-label">Total do planejamento</span><span class="cr-value">R$ ${lastPlanTotal.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>`);
+  extraLists.forEach(l=>{
+    const t = listTotal(l);
+    const included = l.includeInTotal !== false;
+    rows.push(`<div class="cost-row ${included?'':'excluded'}">
+      <span class="cr-label">${l.name}${included?'':' (não somada)'}</span>
+      <span class="cr-value">R$ ${t.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
+    </div>`);
+  });
+  const grand = lastPlanTotal + extraListsGrandTotal();
+  rows.push(`<div class="cost-row grand"><span class="cr-label">Total geral</span><span class="cr-value">R$ ${grand.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>`);
+  el.innerHTML = `<div class="cs-title">Resumo de custos</div>${rows.join('')}`;
+}
+
+function renderExtraShop(){
+  renderListSelect();
+  const list = activeList();
+  const wrap = document.getElementById('extra-shop-wrap');
+  const body = document.getElementById('extra-shop-body');
+  const includeChk = document.getElementById('list-include-total');
+  if(includeChk && list) includeChk.checked = list.includeInTotal !== false;
+  if(!list || list.items.length === 0){
+    wrap.style.display = 'none';
+    body.innerHTML = '';
+    renderCostSummary();
+    return;
+  }
+  wrap.style.display = 'block';
+  body.innerHTML = list.items.map(it=>{
+    const cost = extraCostFor(it);
+    const priceLabel = (it.unit||'').toLowerCase()==='g' ? 'R$/kg' : (it.unit||'').toLowerCase()==='ml' ? 'R$/L' : 'R$';
+    return `
+    <tr class="${it.checked?'checked':''}" data-id="${it.id}">
+      <td><input type="checkbox" class="extra-chk" ${it.checked?'checked':''}></td>
+      <td>${it.name}</td>
+      <td class="qty-cell">${it.qty ? it.qty + (it.unit?' '+it.unit:'') : (it.unit||'')}</td>
+      <td><input type="number" class="price extra-price" min="0" step="0.01" placeholder="${priceLabel}" value="${it.price!==undefined && it.price!==''?it.price:''}"></td>
+      <td class="cost">${cost!==null ? 'R$ ' + cost.toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}) : '—'}</td>
+      <td><button class="del-btn" data-extra-del="${it.id}" style="margin-top:0;">remover</button></td>
+    </tr>`;
+  }).join('');
+  renderCostSummary();
+  body.querySelectorAll('.extra-price').forEach(inp=>{
+    inp.addEventListener('change', async e=>{
+      const id = e.target.closest('tr').dataset.id;
+      const it = activeList().items.find(x=> String(x.id)===id);
+      if(it) it.price = e.target.value;
+      await storeSet('extraLists', extraLists);
+      renderExtraShop();
+    });
+  });
+  body.querySelectorAll('.extra-chk').forEach(chk=>{
+    chk.addEventListener('change', async e=>{
+      const id = e.target.closest('tr').dataset.id;
+      const it = activeList().items.find(x=> String(x.id)===id);
+      if(it) it.checked = e.target.checked;
+      await storeSet('extraLists', extraLists);
+      renderExtraShop();
+    });
+  });
+  body.querySelectorAll('[data-extra-del]').forEach(btn=>{
+    btn.addEventListener('click', async e=>{
+      const id = e.target.dataset.extraDel;
+      const l = activeList();
+      l.items = l.items.filter(x=> String(x.id) !== id);
+      await storeSet('extraLists', extraLists);
+      renderExtraShop();
+    });
+  });
+}
+
+document.getElementById('list-select').addEventListener('change', e=>{
+  activeListId = e.target.value;
+  renderExtraShop();
+});
+
+document.getElementById('list-include-total').addEventListener('change', async e=>{
+  const l = activeList();
+  if(!l) return;
+  l.includeInTotal = e.target.checked;
+  await storeSet('extraLists', extraLists);
+  renderCostSummary();
+});
+
+document.getElementById('btn-new-list').addEventListener('click', async ()=>{
+  const name = prompt('Nome da nova lista:', '');
+  if(!name || !name.trim()) return;
+  const l = { id: 'list-'+Date.now(), name: name.trim(), items: [], includeInTotal:true };
+  extraLists.push(l);
+  activeListId = l.id;
+  await storeSet('extraLists', extraLists);
+  await storeSet('activeListId', activeListId);
+  renderExtraShop();
+});
+
+document.getElementById('btn-rename-list').addEventListener('click', async ()=>{
+  const l = activeList();
+  if(!l) return;
+  const name = prompt('Novo nome da lista:', l.name);
+  if(!name || !name.trim()) return;
+  l.name = name.trim();
+  await storeSet('extraLists', extraLists);
+  renderExtraShop();
+});
+
+document.getElementById('btn-delete-list').addEventListener('click', async ()=>{
+  if(extraLists.length <= 1){ alert('Precisa ter pelo menos uma lista — renomeie ou esvazie esta em vez de excluir.'); return; }
+  const l = activeList();
+  if(!confirm(`Excluir a lista "${l.name}" e todos os itens dela?`)) return;
+  extraLists = extraLists.filter(x=> x.id !== l.id);
+  activeListId = extraLists[0].id;
+  await storeSet('extraLists', extraLists);
+  await storeSet('activeListId', activeListId);
+  renderExtraShop();
+});
+
+document.getElementById('extra-add').addEventListener('click', async ()=>{
+  const name = document.getElementById('extra-name').value.trim();
+  if(!name) return;
+  const qty = document.getElementById('extra-qty').value.trim();
+  const unit = document.getElementById('extra-unit').value.trim();
+  activeList().items.push({ id: Date.now(), name, qty, unit, checked:false });
+  await storeSet('extraLists', extraLists);
+  await learnItemName(name);
+  document.getElementById('extra-name').value = '';
+  document.getElementById('extra-qty').value = '';
+  document.getElementById('extra-unit').value = '';
+  renderExtraShop();
+});
+
+async function learnItemName(name){
+  const exists = knownItems.some(n=> n.toLowerCase() === name.toLowerCase());
+  if(!exists){
+    knownItems.push(name);
+    knownItems.sort((a,b)=> a.localeCompare(b,'pt-BR'));
+    await storeSet('knownItems', knownItems);
+    document.getElementById('dl-household').innerHTML = knownItems.map(n=>`<option value="${n}">`).join('');
+  }
+}
+
+document.getElementById('btn-toggle-shop').addEventListener('click', ()=>{
+  const box = document.getElementById('shop-collapsible');
+  const btn = document.getElementById('btn-toggle-shop');
+  const open = box.style.display !== 'none';
+  box.style.display = open ? 'none' : 'block';
+  btn.classList.toggle('open', !open);
+});
+
+
+function buildAggregate(weeks, includeDoce){
+  const agg = {};
+  const unqual = {};
+
+  function add(rawName, shopName, qty, unit, times, estimated){
+    const dispName = shopName || rawName;
+    const key = dispName+'|'+unit;
+    if(qty === null){
+      unqual[key] = {name: dispName, unit};
+      return;
+    }
+    if(!agg[key]) agg[key] = {name: dispName, unit, qty:0, hasEstimate:false};
+    agg[key].qty += qty * times;
+    if(estimated) agg[key].hasEstimate = true;
+  }
+
+  MEAL_KEYS.forEach(mk=>{
+    const counts = [0,0,0];
+    weekPlan[mk].forEach(v=> counts[v]++);
+    MEALS[mk].options.forEach((opt,oi)=>{
+      const timesTotal = counts[oi] * weeks;
+      if(timesTotal===0) return;
+      opt.items.forEach(it=> add(it.name, it.shopName, it.qty, it.unit, timesTotal, it.estimated));
+    });
+  });
+
+  const days = 7*weeks;
+  DAYS.forEach((_,di)=>{
+    const j = juiceForDay(di);
+    add(j.name, null, j.qty, j.unit, weeks, false);
+  });
+  if(includeDoce) add(EXTRAS.optional.name, null, EXTRAS.optional.qty, EXTRAS.optional.unit, days, false);
+
+  return {agg, unqual};
+}
+
+function costFor(item, price){
+  if(price === undefined || price === null || price === '' || isNaN(price)) return null;
+  if(item.unit === 'g') return (item.qty/1000) * price;
+  return item.qty * price;
+}
+
+async function renderShopping(){
+  const weeks = parseInt(document.getElementById('in-weeks').value) || 4;
+  const includeDoce = document.getElementById('in-doce').checked;
+  settings.weeks = weeks; settings.includeDoce = includeDoce;
+  storeSet('settings', settings);
+
+  const {agg, unqual} = buildAggregate(weeks, includeDoce);
+  const body = document.getElementById('shop-body');
+  const rows = Object.values(agg).sort((a,b)=> a.name.localeCompare(b.name,'pt-BR'));
+
+  let totalCost = 0;
+  body.innerHTML = rows.map(item=>{
+    const key = item.name+'|'+item.unit;
+    const price = prices[key];
+    const cost = costFor(item, price);
+    if(cost !== null) totalCost += cost;
+    const checked = checkedShop[key] ? 'checked' : '';
+    const priceLabel = item.unit === 'g' ? 'R$/kg' : `R$/${item.unit === 'unid' ? 'unid.' : item.unit}`;
+    const qtyTxt = (item.hasEstimate?'≈ ':'') + (item.unit==='g' ? Math.round(item.qty) + ' g' : item.qty + ' ' + pluralUnit(item.qty, item.unit));
+    return `<tr class="${checked?'checked':''}" data-key="${key}">
+      <td><input type="checkbox" class="chk" ${checked}></td>
+      <td>${item.name}</td>
+      <td class="qty-cell ${item.hasEstimate?'est':''}">${qtyTxt}</td>
+      <td><input type="number" class="price" min="0" step="0.01" placeholder="${priceLabel}" value="${price!==undefined?price:''}"></td>
+      <td class="cost">${cost!==null ? 'R$ ' + cost.toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}) : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  lastPlanTotal = totalCost;
+  renderCostSummary();
+
+  const uq = Object.values(unqual).sort((a,b)=> a.name.localeCompare(b.name,'pt-BR'));
+  document.getElementById('shop-unqualified').innerHTML = uq.map(u=>
+    `<li>${u.name} <span style="color:var(--muted);">(${u.unit})</span></li>`).join('') || '<li>Nenhum</li>';
+
+  body.querySelectorAll('input.price').forEach(inp=>{
+    inp.addEventListener('change', async e=>{
+      const key = e.target.closest('tr').dataset.key;
+      const val = parseFloat(e.target.value);
+      if(isNaN(val)) delete prices[key]; else prices[key] = val;
+      await storeSet('prices', prices);
+      renderShopping();
+    });
+  });
+  body.querySelectorAll('input.chk').forEach(chk=>{
+    chk.addEventListener('change', async e=>{
+      const tr = e.target.closest('tr');
+      const key = tr.dataset.key;
+      checkedShop[key] = e.target.checked;
+      tr.classList.toggle('checked', e.target.checked);
+      await storeSet('checkedShop', checkedShop);
+    });
+  });
+}
+
+/* =================================================================
+   SORTEAR
+================================================================= */
+function buildPoolFor(mealType){
+  const pool = [];
+  if(document.getElementById('sort-inc-oficiais').checked){
+    MEALS[mealType].options.forEach((opt,i)=> pool.push({
+      title:opt.title, items:opt.items, source:'Opção oficial', applyIdx:i,
+      saveType:'oficial', saveId:`oficial-${mealType}-${i}`
+    }));
+  }
+  if(document.getElementById('sort-inc-sugeridas').checked){
+    VARIACOES.forEach((v,i)=>{
+      if(v.mealType !== mealType) return;
+      pool.push({ title:v.title, items:v.items, source:'Variação sugerida', saveType:'sugerida', saveId:`sugerida-${i}` });
+    });
+  }
+  if(document.getElementById('sort-inc-custom').checked){
+    customVariations.filter(v=>v.mealType===mealType).forEach(v=> pool.push({
+      title:v.title, items:v.items, source:'Sua variação', saveType:'custom', saveId:`custom-${v.id}`
+    }));
+  }
+  if(document.getElementById('sort-inc-livro').checked){
+    recipesBook.filter(v=>v.mealType===mealType).forEach(v=> pool.push({
+      title:v.title, items:v.items, source:'Livro de receitas', alreadyInBook:true
+    }));
+  }
+  return pool;
+}
+
+function renderSortResult(pick, mealType){
+  const el = document.getElementById('sortear-result');
+  if(!pick){
+    el.innerHTML = `<div class="empty-hint">Nada disponível com esses filtros — marque pelo menos uma origem.</div>`;
+    document.getElementById('btn-sortear-again').style.display = 'none';
+    return;
+  }
+  const showSave = !!pick.saveType && !pick.alreadyInBook;
+  el.innerHTML = `
+    <div class="card meal-${mealType}">
+      ${renderEyebrow({
+        leftHtml:`<span class="meal-tag ${mealType}">${pick.source}</span>`,
+        showSave, saveType:pick.saveType, saveId:pick.saveId,
+        alreadySaved: pick.saveId ? isSaved(pick.saveId) : false,
+        originOverride:'sorteio'
+      })}
+      <h4>${pick.title}</h4>
+      <ul>${itemsHTML(pick.items)}</ul>
+      <div class="apply-line">
+        ${pick.applyIdx !== undefined
+          ? `<button class="btn-prim" id="btn-apply-today">Usar hoje</button>`
+          : pick.alreadyInBook
+            ? `<span class="empty-hint" style="padding:0;">Já está no livro de receitas.</span>`
+            : `<span class="empty-hint" style="padding:0;">Salve no livro (botão acima) pra preparar num dia específico.</span>`}
+      </div>
+    </div>`;
+  document.getElementById('btn-sortear-again').style.display = 'inline-block';
+  if(pick.applyIdx !== undefined){
+    document.getElementById('btn-apply-today').addEventListener('click', async ()=>{
+      const idx = jsDayToIdx(new Date().getDay());
+      weekPlan[mealType][idx] = pick.applyIdx;
+      await storeSet('weekPlan', weekPlan);
+      renderWeekGrid(); renderMobileWeekDays(); renderToday(); renderShopping();
+    });
+  }
+}
+
+function doSort(){
+  const mealType = document.getElementById('sort-mealtype').value;
+  let pool = buildPoolFor(mealType);
+  if(pool.length > 1 && lastSortedKey === mealType && lastSorted){
+    pool = pool.filter(p=> p.title !== lastSorted.title);
+  }
+  if(pool.length === 0){ renderSortResult(null, mealType); return; }
+  const pick = pool[Math.floor(Math.random()*pool.length)];
+  lastSorted = pick; lastSortedKey = mealType;
+  renderSortResult(pick, mealType);
+}
+document.getElementById('btn-sortear').addEventListener('click', doSort);
+document.getElementById('btn-sortear-again').addEventListener('click', doSort);
+document.getElementById('sort-mealtype').addEventListener('change', ()=>{ lastSorted=null; lastSortedKey=null; document.getElementById('btn-sortear-again').style.display='none'; });
+
+const btnSortearSemana = document.getElementById('btn-sortear-semana');
+if(btnSortearSemana){
+  btnSortearSemana.addEventListener('click', async ()=>{
+    try{
+      MEAL_KEYS.forEach(mk=>{
+        weekPlan[mk] = DAYS.map(()=> Math.floor(Math.random()*3));
+      });
+      await storeSet('weekPlan', weekPlan);
+      renderWeekGrid();
+      renderMobileWeekDays();
+      renderToday();
+      renderShopping();
+
+      const original = btnSortearSemana.textContent;
+      btnSortearSemana.textContent = 'Sorteada ✓ — indo pra Semana...';
+      btnSortearSemana.disabled = true;
+      setTimeout(()=>{
+        btnSortearSemana.textContent = original;
+        btnSortearSemana.disabled = false;
+        switchTab('semana');
+        const box = document.getElementById('week-detail-collapsible');
+        const toggleBtn = document.getElementById('btn-toggle-week');
+        box.style.display = 'block';
+        toggleBtn.classList.add('open');
+      }, 650);
+    }catch(err){
+      console.error('Erro ao sortear a semana:', err);
+      alert('Não consegui sortear a semana — veja o console para detalhes.');
+    }
+  });
+}
+
+/* =================================================================
+   INIT
+================================================================= */
+async function init(){
+  document.getElementById('dl-free-ingredients').innerHTML = FREE_INGREDIENTS.map(n=>`<option value="${n}">`).join('');
+  document.getElementById('dl-free-units').innerHTML = FREE_UNITS.map(u=>`<option value="${u}">`).join('');
+  document.getElementById('dl-purchase-units').innerHTML = PURCHASE_UNITS.map(u=>`<option value="${u}">`).join('');
+  document.getElementById('dl-qty-common').innerHTML = QTY_COMMON.map(q=>`<option value="${q}">`).join('');
+
+  weekPlan = await storeGet('weekPlan', defaultWeekPlan());
+  prices = await storeGet('prices', {});
+  settings = await storeGet('settings', {weeks:4, includeDoce:true});
+  checkedShop = await storeGet('checkedShop', {});
+  customVariations = await storeGet('customVariations', []);
+  recipesBook = await storeGet('recipesBook', []);
+  knownItems = await storeGet('knownItems', []);
+  document.getElementById('dl-household').innerHTML = knownItems.map(n=>`<option value="${n}">`).join('');
+  extraLists = await storeGet('extraLists', null);
+  if(!extraLists){
+    const legacy = await storeGet('extraItems', []);
+    extraLists = [{ id:'list-default', name:'Lista extra', items: legacy }];
+    await storeSet('extraLists', extraLists);
+  }
+  activeListId = await storeGet('activeListId', extraLists[0].id);
+  if(!extraLists.find(l=> l.id === activeListId)) activeListId = extraLists[0].id;
+
+
+  document.getElementById('in-weeks').value = settings.weeks || 4;
+  document.getElementById('in-doce').checked = settings.includeDoce !== false;
+
+  MEAL_KEYS.forEach(renderMealCards);
+  renderAllVariationViews();
+  renderCatalogSelect();
+  renderFormItems();
+  renderWeekGrid();
+  renderMobileWeekDays();
+  renderToday();
+  renderJuiceWeek();
+  renderShopping();
+  renderExtraShop();
+
+  document.getElementById('btn-reset-week').addEventListener('click', async ()=>{
+    weekPlan = defaultWeekPlan();
+    await storeSet('weekPlan', weekPlan);
+    renderWeekGrid(); renderMobileWeekDays(); renderToday(); renderShopping();
+  });
+  document.getElementById('in-weeks').addEventListener('change', renderShopping);
+  document.getElementById('in-doce').addEventListener('change', ()=>{ renderShopping(); renderToday(); });
+}
+init();
+</script>
+</body>
+</html>
