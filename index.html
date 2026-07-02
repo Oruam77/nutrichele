@@ -202,7 +202,7 @@
   table.shop td{padding:10px;border-top:1px solid var(--line);}
   table.shop tr.checked td{opacity:.4;text-decoration:line-through;}
   table.shop input[type=checkbox]{width:18px;height:18px;accent-color:var(--sage);}
-  table.shop input.price{width:84px;font-family:'DM Mono',monospace;font-size:13px;padding:7px 8px;border-radius:6px;border:1px solid var(--line);min-height:36px;}
+  table.shop input.price, table.shop input.buy-qty, table.shop input.buy-unit, table.shop input.buy-price{width:84px;font-family:'DM Mono',monospace;font-size:13px;padding:7px 8px;border-radius:6px;border:1px solid var(--line);min-height:36px;}
   table.shop td.qty-cell{font-family:'DM Mono',monospace;color:var(--sage-deep);font-size:14px;}
   table.shop td.qty-cell.est{color:var(--ochre);font-style:italic;}
   table.shop td.cost{font-family:'DM Mono',monospace;text-align:right;}
@@ -236,7 +236,7 @@
 
   <header class="top">
     <div class="id">
-      <span class="eyebrow-text">Nutrichele <span class="version-tag">v0.5.5</span></span>
+      <span class="eyebrow-text">Nutrichele <span class="version-tag">v0.6.1</span></span>
       <h1>Nutrichele</h1>
       <div class="sub">Painel de cozinha — monte a rotação da semana, veja o que fazer hoje e gere a lista de compras com custo estimado.</div>
     </div>
@@ -411,9 +411,10 @@
       <span class="chevron" id="shop-toggle-chevron">▾</span>
     </button>
     <div id="shop-collapsible">
+      <div class="section-note">O total aqui é a soma direta do que você pagou de verdade: preencha quanto comprou e o preço de cada produto (do jeito que ele é vendido — "Arroz, 2, kg" / "Alface, 2, unid" / "Suco, 1, L"). A coluna "Precisa de" é só referência — mostra quanto o plano pede, com um valor indicativo em cinza calculado a partir do que você pagou (não entra na soma).</div>
       <div class="shop-wrap">
         <table class="shop">
-          <thead><tr><th></th><th>Ingrediente</th><th>Quantidade no período</th><th>Preço (R$/kg ou R$/unid.)</th><th>Custo</th></tr></thead>
+          <thead><tr><th></th><th>Ingrediente</th><th>Precisa de <small>(referência)</small></th><th>Comprou</th><th>Unidade</th><th>Preço pago</th></tr></thead>
           <tbody id="shop-body"></tbody>
         </table>
       </div>
@@ -730,7 +731,7 @@ function defaultWeekPlan(){
   return plan;
 }
 
-let weekPlan, prices, settings, checkedShop, customVariations, recipesBook, extraLists, activeListId, knownItems;
+let weekPlan, purchases, settings, checkedShop, customVariations, recipesBook, extraLists, activeListId, knownItems;
 let formDraft = { items: [] };
 let titleTouched = false;
 let lastSorted = null;
@@ -1544,10 +1545,18 @@ function buildAggregate(weeks, includeDoce){
   return {agg, unqual};
 }
 
-function costFor(item, price){
-  if(price === undefined || price === null || price === '' || isNaN(price)) return null;
-  if(item.unit === 'g') return (item.qty/1000) * price;
-  return item.qty * price;
+const UNIT_GROUP = { g:'peso', kg:'peso', ml:'volume', L:'volume', unid:'conta', 'dúzia':'conta' };
+const UNIT_BASE  = { g:1, kg:1000, ml:1, L:1000, unid:1, 'dúzia':12 };
+
+function indicativePortionCost(neededQty, neededUnit, boughtQty, boughtUnit, price){
+  const bq = parseFloat(boughtQty), pr = parseFloat(price);
+  if(isNaN(bq) || bq<=0 || isNaN(pr) || pr<0) return null;
+  const g1 = UNIT_GROUP[neededUnit], g2 = UNIT_GROUP[(boughtUnit||'').toLowerCase()];
+  if(!g1 || !g2 || g1!==g2) return null;
+  const neededBase = neededQty * (UNIT_BASE[neededUnit]||1);
+  const boughtBase = bq * (UNIT_BASE[(boughtUnit||'').toLowerCase()]||1);
+  if(boughtBase<=0) return null;
+  return neededBase * (pr/boughtBase);
 }
 
 async function renderShopping(){
@@ -1563,18 +1572,22 @@ async function renderShopping(){
   let totalCost = 0;
   body.innerHTML = rows.map(item=>{
     const key = item.name+'|'+item.unit;
-    const price = prices[key];
-    const cost = costFor(item, price);
-    if(cost !== null) totalCost += cost;
+    const p = purchases[key] || {};
+    const price = parseFloat(p.price);
+    if(!isNaN(price) && price>=0) totalCost += price;
     const checked = checkedShop[key] ? 'checked' : '';
-    const priceLabel = item.unit === 'g' ? 'R$/kg' : `R$/${item.unit === 'unid' ? 'unid.' : item.unit}`;
     const qtyTxt = (item.hasEstimate?'≈ ':'') + (item.unit==='g' ? Math.round(item.qty) + ' g' : item.qty + ' ' + pluralUnit(item.qty, item.unit));
+    const indicative = indicativePortionCost(item.qty, item.unit, p.qty, p.unit, p.price);
     return `<tr class="${checked?'checked':''}" data-key="${key}">
       <td><input type="checkbox" class="chk" ${checked}></td>
       <td>${item.name}</td>
-      <td class="qty-cell ${item.hasEstimate?'est':''}">${qtyTxt}</td>
-      <td><input type="number" class="price" min="0" step="0.01" placeholder="${priceLabel}" value="${price!==undefined?price:''}"></td>
-      <td class="cost">${cost!==null ? 'R$ ' + cost.toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}) : '—'}</td>
+      <td class="qty-cell ${item.hasEstimate?'est':''}">
+        ${qtyTxt}
+        ${indicative!==null ? `<span class="qty-secondary suggested">≈ R$ ${indicative.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})} nessa porção</span>` : ''}
+      </td>
+      <td><input type="text" class="buy-qty" inputmode="decimal" placeholder="ex.: 2" value="${p.qty!==undefined?p.qty:''}"></td>
+      <td><input type="text" class="buy-unit" list="dl-purchase-units" placeholder="ex.: kg" value="${p.unit!==undefined?p.unit:''}"></td>
+      <td><input type="text" class="buy-price" inputmode="decimal" placeholder="R$" value="${p.price!==undefined?p.price:''}"></td>
     </tr>`;
   }).join('');
 
@@ -1585,14 +1598,21 @@ async function renderShopping(){
   document.getElementById('shop-unqualified').innerHTML = uq.map(u=>
     `<li>${u.name} <span style="color:var(--muted);">(${u.unit})</span></li>`).join('') || '<li>Nenhum</li>';
 
-  body.querySelectorAll('input.price').forEach(inp=>{
-    inp.addEventListener('change', async e=>{
-      const key = e.target.closest('tr').dataset.key;
-      const val = parseFloat(e.target.value);
-      if(isNaN(val)) delete prices[key]; else prices[key] = val;
-      await storeSet('prices', prices);
-      renderShopping();
-    });
+  async function savePurchase(key, field, value){
+    if(!purchases[key]) purchases[key] = {};
+    if(value === '') delete purchases[key][field]; else purchases[key][field] = value;
+    if(Object.keys(purchases[key]).length === 0) delete purchases[key];
+    await storeSet('purchases', purchases);
+    renderShopping();
+  }
+  body.querySelectorAll('input.buy-qty').forEach(inp=>{
+    inp.addEventListener('change', e=> savePurchase(e.target.closest('tr').dataset.key, 'qty', e.target.value.trim()));
+  });
+  body.querySelectorAll('input.buy-unit').forEach(inp=>{
+    inp.addEventListener('change', e=> savePurchase(e.target.closest('tr').dataset.key, 'unit', e.target.value.trim()));
+  });
+  body.querySelectorAll('input.buy-price').forEach(inp=>{
+    inp.addEventListener('change', e=> savePurchase(e.target.closest('tr').dataset.key, 'price', e.target.value.trim()));
   });
   body.querySelectorAll('input.chk').forEach(chk=>{
     chk.addEventListener('change', async e=>{
@@ -1729,7 +1749,7 @@ async function init(){
   document.getElementById('dl-qty-common').innerHTML = QTY_COMMON.map(q=>`<option value="${q}">`).join('');
 
   weekPlan = await storeGet('weekPlan', defaultWeekPlan());
-  prices = await storeGet('prices', {});
+  purchases = await storeGet('purchases', {});
   settings = await storeGet('settings', {weeks:4, includeDoce:true});
   checkedShop = await storeGet('checkedShop', {});
   customVariations = await storeGet('customVariations', []);
